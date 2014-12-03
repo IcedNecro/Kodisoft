@@ -25,7 +25,7 @@ typedef NTSTATUS(NTAPI *_NtWow64ReadVirtualMemory64)(
 	OUT PVOID Buffer,
 	IN ULONG64 Size,
 	OUT PULONG64 NumberOfBytesRead);
-/*
+
 // PROCESS_BASIC_INFORMATION for pure 32 and 64-bit processes
 typedef struct _PROCESS_BASIC_INFORMATION {
 	PVOID Reserved1;
@@ -34,7 +34,7 @@ typedef struct _PROCESS_BASIC_INFORMATION {
 	ULONG_PTR UniqueProcessId;
 	PVOID Reserved3;
 } PROCESS_BASIC_INFORMATION;
-*/
+
 // PROCESS_BASIC_INFORMATION for 32-bit process on WOW64
 // The definition is quite funky, as we just lazily doubled sizes to match offsets...
 typedef struct _PROCESS_BASIC_INFORMATION_WOW64 {
@@ -44,13 +44,13 @@ typedef struct _PROCESS_BASIC_INFORMATION_WOW64 {
 	ULONG_PTR UniqueProcessId[2];
 	PVOID Reserved3[2];
 } PROCESS_BASIC_INFORMATION_WOW64;
-/*
+
 typedef struct _UNICODE_STRING {
 	USHORT Length;
 	USHORT MaximumLength;
 	PWSTR  Buffer;
 } UNICODE_STRING;
-*/
+
 typedef struct _UNICODE_STRING_WOW64 {
 	USHORT Length;
 	USHORT MaximumLength;
@@ -71,6 +71,10 @@ int get_cmd_line(DWORD dwId, PWSTR &buf)
 	SYSTEM_INFO si;
 	GetNativeSystemInfo(&si);
 
+	// determine if this process is running on WOW64
+	BOOL wow;
+	IsWow64Process(GetCurrentProcess(), &wow);
+
 	// use WinDbg "dt ntdll!_PEB" command and search for ProcessParameters offset to find the truth out
 	DWORD ProcessParametersOffset = si.wProcessorArchitecture == PROCESSOR_ARCHITECTURE_AMD64 ? 0x20 : 0x10;
 	DWORD CommandLineOffset = si.wProcessorArchitecture == PROCESSOR_ARCHITECTURE_AMD64 ? 0x70 : 0x40;
@@ -87,6 +91,8 @@ int get_cmd_line(DWORD dwId, PWSTR &buf)
 
 	PWSTR cmdLine;
 
+	if (wow)
+	{
 		// we're running as a 32-bit process in a 64-bit OS
 		PROCESS_BASIC_INFORMATION_WOW64 pbi;
 		ZeroMemory(&pbi, sizeof(pbi));
@@ -120,6 +126,7 @@ int get_cmd_line(DWORD dwId, PWSTR &buf)
 			CloseHandle(hProcess);
 			return GetLastError();
 		}
+
 		// read CommandLine
 		UNICODE_STRING_WOW64* pCommandLine = (UNICODE_STRING_WOW64*)(pp + CommandLineOffset);
 		cmdLine = (PWSTR)malloc(pCommandLine->MaximumLength);
@@ -130,12 +137,60 @@ int get_cmd_line(DWORD dwId, PWSTR &buf)
 			CloseHandle(hProcess);
 			return GetLastError();
 		}
-	
+	}
+	else
+	{
+		// we're running as a 32-bit process in a 32-bit OS, or as a 64-bit process in a 64-bit OS
+		PROCESS_BASIC_INFORMATION pbi;
+		ZeroMemory(&pbi, sizeof(pbi));
+
+		// get process information
+		_NtQueryInformationProcess query = (_NtQueryInformationProcess)GetProcAddress(GetModuleHandleA("ntdll.dll"), "NtQueryInformationProcess");
+		err = query(hProcess, 0, &pbi, sizeof(pbi), NULL);
+		if (!err)
+		{
+			printf("NtQueryInformationProcess failed\n");
+			CloseHandle(hProcess);
+			return GetLastError();
+		}
+
+		// read PEB
+		if (!ReadProcessMemory(hProcess, pbi.PebBaseAddress, peb, pebSize, NULL))
+		{
+			printf("ReadProcessMemory PEB failed\n");
+			CloseHandle(hProcess);
+			return GetLastError();
+		}
+
+		// read ProcessParameters
+		PBYTE* parameters = (PBYTE*)*(LPVOID*)(peb + ProcessParametersOffset); // address in remote process adress space
+		if (!ReadProcessMemory(hProcess, parameters, pp, ppSize, NULL))
+		{
+			printf("ReadProcessMemory Parameters failed\n");
+			CloseHandle(hProcess);
+			return GetLastError();
+		}
+
+		// read CommandLine
+		UNICODE_STRING* pCommandLine = (UNICODE_STRING*)(pp + CommandLineOffset);
+		cmdLine = (PWSTR)malloc(pCommandLine->MaximumLength);
+		if (!ReadProcessMemory(hProcess, pCommandLine->Buffer, cmdLine, pCommandLine->MaximumLength, NULL))
+		{
+			printf("ReadProcessMemory Parameters failed\n");
+			CloseHandle(hProcess);
+			return GetLastError();
+		}
+	}
+
 	buf = cmdLine;
 }
 
+
 void ProcessManager::pauseProcess()
 {
+
+	HANDLE hProcess = OpenProcess(PROCESS_ALL_ACCESS, false, this->pId);
+	
 	if (!this->isSuspended)
 	{
 		if(!SuspendThread(this->pi.hThread))
@@ -147,7 +202,7 @@ void ProcessManager::pauseProcess()
 		}
 	} else
 	{
-		cout << "already suspend" << endl;
+		cout << "current process is already suspended" << endl;
 	}
 
 }
@@ -166,7 +221,7 @@ void ProcessManager::resumeProcess()
 	}
 	 else 
 	 {
-		 cout << "already resumed" << endl;
+		 cout << "current process is already resumed" << endl;
 	 }
 	
 }
@@ -203,22 +258,17 @@ void ProcessManager::setOnProcessResumeListener(void(*func)(ProcessManager *))
 
 void ProcessManager::restartProcess()
 {
-	wstring commandLine = wstring(this->path) + wstring(L" ") + wstring(this->args);
-	if (!CreateProcess(NULL, LPWSTR(commandLine.c_str()), NULL, NULL, FALSE, 0, NULL, NULL, &cif, &pi))
-		cout << "internal error" << endl;
+	if (!CreateProcess(NULL, LPWSTR(this->path.c_str()), NULL, NULL, FALSE, 0, NULL, NULL, &cif, &pi))
+		Logger::error(PROC_FAILED_WHILE_STARTED, this, GetLastError());
 	else
-		cout << "connect" << endl;
+		this->onStart(this);
 }
 
 void ProcessManager::startProcess()
 {
-//	WCHAR *commandLineContents;
-
-//	Logger log(L"log.txt", this);
 	ZeroMemory(&cif, sizeof(STARTUPINFO));
 	this->isSuspended = false;
-	wstring commandLine = wstring(this->path) + wstring(L" ") + wstring(this->args);
-	if (!CreateProcess(NULL, LPWSTR(commandLine.c_str()), NULL, NULL, FALSE, 0, NULL, NULL, &cif, &pi))
+	if (!CreateProcess(NULL, LPWSTR(this->path.c_str()), NULL, NULL, FALSE, 0, NULL, NULL, &cif, &pi))
 	{
 		Logger::error(PROC_FAILED_WHILE_STARTED, this, GetLastError());
 	}
@@ -238,8 +288,7 @@ bool ProcessManager::reopenProcess()
 
 ProcessManager::ProcessManager(LPWSTR _cmd_prompt_path, LPWSTR _args)
 {
-	this->path = _cmd_prompt_path;
-	this->args = _args;
+	this->path = wstring(_cmd_prompt_path) + wstring(L" ") + wstring(_args);
 
 	this->onStop = [](ProcessManager * pm)
 	{
@@ -262,6 +311,25 @@ ProcessManager::ProcessManager(LPWSTR _cmd_prompt_path, LPWSTR _args)
 	}; 
 }
 
+ProcessManager::ProcessManager(DWORD pId)
+{ 
+	HANDLE handle = OpenProcess(PROCESS_ALL_ACCESS, false, pId);
+
+	if (handle == NULL)
+	{
+
+	}
+	else
+	{
+		PWSTR buf;
+		get_cmd_line(pId, buf);
+		this->path = buf;
+		printf("%S\n",buf);
+		GetProcessInformation(handle, ProcessMemoryPriority, &this->pi, sizeof(PROCESS_INFORMATION));
+		t = thread(ProcessManager::getInfo, this);
+	}
+}
+
 HANDLE& ProcessManager::getThreadHandle()
 {
 	return this->pi.hThread;
@@ -277,14 +345,23 @@ void ProcessManager::getInfo(ProcessManager *manager)
 	while (1)
 	{
 		DWORD exit_code;
+		
 		GetExitCodeProcess(manager->getProcessHandle(), &exit_code);
-		if (exit_code == 0)
+		cout << exit_code << endl;
+		if (exit_code == STILL_ACTIVE)
 		{
-			cout << "Application crash!" << endl;
+			//cout << "Application crash!" << endl;
+		}
+		else if (exit_code == 0)
+		{
+			//manager->t.detach();
+			break;
+		}else
+		{
 			manager->restartProcess();
+
 		}
 		Sleep(1000);
-		cout << exit_code << endl;
 	}
 }
 
@@ -336,19 +413,26 @@ BOOL ProcessManager::GetProcessList()
 	{
 		dwPriorityClass = 0;
 		hProcess = OpenProcess(PROCESS_ALL_ACCESS, FALSE, pe32.th32ProcessID);
-
+		DWORD sz = DWORD(400);
 		LPWSTR sCmdLineInfo = new WCHAR[200];
-		cout <<"\nerror code:"<< GetLastError() << endl;
-		GetProcessImageFileName(hProcess, sCmdLineInfo, 200);
-
+	//	cout <<"\nerror code:"<< GetLastError() << endl;
+		QueryFullProcessImageName(hProcess, 0, sCmdLineInfo, &sz);
+		
 		PWSTR buf;
 
-		get_cmd_line(pe32.th32ProcessID, buf);
+		if (hProcess == NULL)
+		{
+			cout << "access denied" <<GetLastError()<< endl;
+		}
+		else
+		{
+			get_cmd_line(pe32.th32ProcessID, buf);
+			
+			_tprintf(TEXT("\nPROCESS NAME:  %i	%s\n%s"), pe32.th32ProcessID, sCmdLineInfo, buf);
 
-		_tprintf(TEXT("\nPROCESS NAME:  %i	%s\n"), pe32.th32ProcessID, pe32.szExeFile);
-
-		dwPriorityClass = GetPriorityClass(hProcess);
-		CloseHandle(hProcess);
+			dwPriorityClass = GetPriorityClass(hProcess);
+			CloseHandle(hProcess);
+		}
 	} while (Process32Next(hProcessSnap, &pe32));
 
 	cout << GetCurrentProcessId() << endl;
@@ -356,12 +440,11 @@ BOOL ProcessManager::GetProcessList()
 	return(TRUE);
 }
 
-
 ProcessManager::~ProcessManager()
 {
 	CloseHandle(this->pi.hProcess);
 	CloseHandle(this->pi.hThread);
 	cout << "Destroing class" << endl;
-	this->t.detach();
 	this->stopProcess();
+	this->t.detach();
 }

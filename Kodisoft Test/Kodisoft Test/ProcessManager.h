@@ -8,22 +8,22 @@ class ProcessManager
 	fstream f;
 	int isSuspended = -1;
 	
-	LPWSTR path;
-	LPWSTR args;
+	private DWORD pId;
 
+
+	wstring path;
+	
 	function<void(ProcessManager *)> onStop;
 	function<void(ProcessManager *)> onStart;
 	function<void(ProcessManager *)> onResume;
 	function<void(ProcessManager *)> onPause;
 
-	STARTUPINFO cif;
-	PROCESS_INFORMATION pi;
-	HANDLE handler;
 
 	static void getInfo(ProcessManager*);
 	
 public:
 	ProcessManager(LPWSTR, LPWSTR);
+	ProcessManager(DWORD);
 	ProcessManager();
 
 	DWORD getRunningThreadInfo();
