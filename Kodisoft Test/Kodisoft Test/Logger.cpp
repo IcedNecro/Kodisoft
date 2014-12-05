@@ -25,23 +25,23 @@ void Logger::log(DWORD eventID, ProcessManager * procManager)
 {
 	LPCSTR * _report_event = new LPCSTR[1];
 	char* _str = new char[1000];
-
+	cout << procManager->getProcessPath() <<" path"<< endl;
 	HANDLE hEventSource = ::RegisterEventSource(NULL, _T("Kodisoft Test"));
 
 	switch (eventID)
 	{
 	case PROC_SUCCESSFULLY_STARTED:
-		sprintf_s(_str, 1000, Logger::LOG_PROCESS_STARTED, procManager->path);
+		sprintf_s(_str, 1000, Logger::LOG_PROCESS_STARTED, procManager->getProcessPath());
 	//	cout << _report_event[0] << endl;
 		break;
 	case PROC_SUSPEND_EVENT:
-		sprintf_s(_str, 1000, Logger::LOG_PROCESS_SUSPENDED, procManager->path);
+		sprintf_s(_str, 1000, Logger::LOG_PROCESS_SUSPENDED, procManager->getProcessPath());
 		break;
 	case PROC_RESUME_EVENT:
-		sprintf_s(_str, 1000, Logger::LOG_PROCESS_RESUMED, procManager->path);
+		sprintf_s(_str, 1000, Logger::LOG_PROCESS_RESUMED, procManager->getProcessPath());
 		break;
 	case PROC_STOP_EVENT:
-		sprintf_s(_str, 1000, Logger::LOG_PROCESS_STOPPED, procManager->path);
+		sprintf_s(_str, 1000, Logger::LOG_PROCESS_STOPPED, procManager->getProcessPath());
 		break;
 	}
 
@@ -63,13 +63,13 @@ void Logger::error(DWORD errorID, ProcessManager * procManager, DWORD sysErrId)
 	switch (errorID)
 	{
 	case PROC_FAILED_WHILE_STARTED:
-		sprintf_s(_str, 1000, Logger::ERR_FAILED_WHILE_START, sysErrId, procManager->path);
+		sprintf_s(_str, 1000, Logger::ERR_FAILED_WHILE_START, sysErrId, procManager->getProcessPath());
 		break;
 	case PROC_ACCESS_DENIED:
-		sprintf_s(_str, 1000, Logger::ERR_FAILED_WHILE_START, sysErrId, procManager->path);
+		sprintf_s(_str, 1000, Logger::ERR_FAILED_WHILE_START, sysErrId, procManager->getProcessPath());
 		break;
 	case PROC_FATAL_ERROR:
-		sprintf_s(_str, 1000, Logger::ERR_FAILED_WHILE_START, sysErrId, procManager->path);
+		sprintf_s(_str, 1000, Logger::ERR_FAILED_WHILE_START, sysErrId, procManager->getProcessPath());
 		break;
 	}
 

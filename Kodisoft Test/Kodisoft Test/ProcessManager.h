@@ -8,7 +8,7 @@ class ProcessManager
 	fstream f;
 	int isSuspended = -1;
 	
-	private DWORD pId;
+	DWORD pId;
 
 
 	wstring path;
@@ -26,6 +26,7 @@ public:
 	ProcessManager(DWORD);
 	ProcessManager();
 
+	LPWSTR getProcessPath();
 	DWORD getRunningThreadInfo();
 	void pauseProcess();
 	void resumeProcess();
@@ -33,7 +34,6 @@ public:
 	void restartProcess();
 	void getProcessInfo();
 	bool reopenProcess();
-	HANDLE& getThreadHandle();
 	HANDLE& getProcessHandle();
 	void startProcess();
 	void setOnProcessStopListener(void(*func)(ProcessManager *));

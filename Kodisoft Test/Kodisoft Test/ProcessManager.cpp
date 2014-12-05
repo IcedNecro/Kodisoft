@@ -193,7 +193,31 @@ void ProcessManager::pauseProcess()
 	
 	if (!this->isSuspended)
 	{
-		if(!SuspendThread(this->pi.hThread))
+
+		HANDLE hThreadSnapshot = CreateToolhelp32Snapshot(TH32CS_SNAPTHREAD, 0);
+
+		THREADENTRY32 threadEntry;
+		threadEntry.dwSize = sizeof(THREADENTRY32);
+
+		Thread32First(hThreadSnapshot, &threadEntry);
+
+		BOOL allThreadsRunning = true;
+
+		do
+		{
+			if (threadEntry.th32OwnerProcessID == this->pId)
+			{
+				HANDLE hThread = OpenThread(THREAD_ALL_ACCESS, FALSE,
+					threadEntry.th32ThreadID);
+
+				allThreadsRunning |= SuspendThread(hThread);
+
+				CloseHandle(hThread);
+			}
+		} while (Thread32Next(hThreadSnapshot, &threadEntry));
+
+		CloseHandle(hThreadSnapshot);
+		if (!allThreadsRunning)
 			;
 		else
 		{
@@ -211,7 +235,31 @@ void ProcessManager::resumeProcess()
 {
 	if (this->isSuspended)
 	{
-		if(!ResumeThread(this->pi.hThread))
+
+		HANDLE hThreadSnapshot = CreateToolhelp32Snapshot(TH32CS_SNAPTHREAD, 0);
+
+		THREADENTRY32 threadEntry;
+		threadEntry.dwSize = sizeof(THREADENTRY32);
+
+		Thread32First(hThreadSnapshot, &threadEntry);
+
+		BOOL allThreadsSuspended = true;
+
+		do
+		{
+			if (threadEntry.th32OwnerProcessID == this->pId)
+			{
+				HANDLE hThread = OpenThread(THREAD_ALL_ACCESS, FALSE,
+					threadEntry.th32ThreadID);
+
+				allThreadsSuspended |= ResumeThread(hThread);
+				
+				CloseHandle(hThread);
+			}
+		} while (Thread32Next(hThreadSnapshot, &threadEntry));
+
+		CloseHandle(hThreadSnapshot);
+		if(!allThreadsSuspended)
 			;
 		else
 		{
@@ -229,11 +277,15 @@ void ProcessManager::resumeProcess()
 void ProcessManager::stopProcess()
 {
 	UINT exit_code = 0x0000042;
-	this->onStop(this);
-	if (!TerminateProcess(this->pi.hProcess, exit_code))
-		;
+	cout << "LOL " << exit_code << endl;
+	HANDLE hProcess = OpenProcess(PROCESS_ALL_ACCESS, false, this->pId);
+	if (!TerminateProcess(hProcess, exit_code))
+		cout<<"err"<<endl;
 	else
-		Logger::log(PROC_STOP_EVENT, this);
+	{
+		this->onStop(this);
+		//Logger::log(PROC_STOP_EVENT, this);
+	}
 }
 
 void ProcessManager::setOnProcessStartListener(void(*func)(ProcessManager *))
@@ -258,6 +310,10 @@ void ProcessManager::setOnProcessResumeListener(void(*func)(ProcessManager *))
 
 void ProcessManager::restartProcess()
 {
+	PROCESS_INFORMATION pi;
+	STARTUPINFO cif;
+	ZeroMemory(&cif, sizeof(STARTUPINFO));
+
 	if (!CreateProcess(NULL, LPWSTR(this->path.c_str()), NULL, NULL, FALSE, 0, NULL, NULL, &cif, &pi))
 		Logger::error(PROC_FAILED_WHILE_STARTED, this, GetLastError());
 	else
@@ -266,6 +322,8 @@ void ProcessManager::restartProcess()
 
 void ProcessManager::startProcess()
 {
+	STARTUPINFO cif;
+	PROCESS_INFORMATION pi;
 	ZeroMemory(&cif, sizeof(STARTUPINFO));
 	this->isSuspended = false;
 	if (!CreateProcess(NULL, LPWSTR(this->path.c_str()), NULL, NULL, FALSE, 0, NULL, NULL, &cif, &pi))
@@ -274,15 +332,17 @@ void ProcessManager::startProcess()
 	}
 	else
 	{
+		this->pId = pi.dwProcessId;
 		t = thread(&ProcessManager::getInfo, this);
-
+		
 		this->onStart(this);
 	}
 }
 
 bool ProcessManager::reopenProcess()
 {
-	HANDLE hProcess = OpenProcess(PROCESS_ALL_ACCESS, FALSE, this->pi.dwProcessId);
+
+	HANDLE hProcess = OpenProcess(PROCESS_ALL_ACCESS, FALSE, this->pId);
 	return true;
 }
 
@@ -324,20 +384,39 @@ ProcessManager::ProcessManager(DWORD pId)
 		PWSTR buf;
 		get_cmd_line(pId, buf);
 		this->path = buf;
+		this->pId = pId;
 		printf("%S\n",buf);
-		GetProcessInformation(handle, ProcessMemoryPriority, &this->pi, sizeof(PROCESS_INFORMATION));
-		t = thread(ProcessManager::getInfo, this);
-	}
-}
+		this->isSuspended = false;
 
-HANDLE& ProcessManager::getThreadHandle()
-{
-	return this->pi.hThread;
+		this->onStop = [](ProcessManager * pm)
+		{
+			Logger::log(PROC_STOP_EVENT, pm);
+		};
+
+		this->onResume = [](ProcessManager * pm)
+		{
+			Logger::log(PROC_RESUME_EVENT, pm);
+		};
+
+		this->onStart = [](ProcessManager * pm)
+		{
+			Logger::log(PROC_SUCCESSFULLY_STARTED, pm);
+		};
+
+		this->onPause = [](ProcessManager * pm)
+		{
+			Logger::log(PROC_SUSPEND_EVENT, pm);
+		};
+
+	//	t = thread(ProcessManager::getInfo, this);
+	}
 }
 
 HANDLE& ProcessManager::getProcessHandle()
 {
-	return this->pi.hProcess;
+	HANDLE hProcess = OpenProcess(PROCESS_ALL_ACCESS, false, pId);
+
+	return hProcess;
 }
 
 void ProcessManager::getInfo(ProcessManager *manager)
@@ -350,15 +429,15 @@ void ProcessManager::getInfo(ProcessManager *manager)
 		cout << exit_code << endl;
 		if (exit_code == STILL_ACTIVE)
 		{
-			//cout << "Application crash!" << endl;
+			cout << "Application crash!" << endl;
 		}
 		else if (exit_code == 0)
 		{
-			//manager->t.detach();
+			manager->t.detach();
 			break;
 		}else
 		{
-			manager->restartProcess();
+//			manager->restartProcess();
 
 		}
 		Sleep(1000);
@@ -367,12 +446,12 @@ void ProcessManager::getInfo(ProcessManager *manager)
 
 void ProcessManager::getProcessInfo()
 {
-	DWORD EXIT_INFO = 999;
-	cout << "Process id:\t" << this->pi.dwProcessId << endl
-		<< "Thread id:\t" << this->pi.dwThreadId << endl;
-	GetExitCodeProcess(this->pi.hProcess, &EXIT_INFO);
-	cout<< "Exit code:" << GetExitCodeThread(this->pi.hProcess, &EXIT_INFO);
-	if (EXIT_INFO == STILL_ACTIVE)
+	DWORD EXIT_INFO = DWORD(999);
+
+	HANDLE hProcess = OpenProcess(PROCESS_ALL_ACCESS, false, pId);
+
+	cout << "Process id:\t" << this->pId << endl;
+		if (EXIT_INFO == STILL_ACTIVE)
 	{
 		if (!this->isSuspended)
 			cout << "is active";
@@ -382,6 +461,16 @@ void ProcessManager::getProcessInfo()
 	else
 		cout << "is innactive" << endl;
 	
+}
+
+LPWSTR ProcessManager::getProcessPath()
+{
+	LPWSTR path = new WCHAR[400];
+	DWORD sz = DWORD(400);
+	HANDLE hProcess = OpenProcess(PROCESS_ALL_ACCESS, false, this->pId);
+	QueryFullProcessImageName(hProcess, 0, path, &sz);
+
+	return path;
 }
 
 BOOL ProcessManager::GetProcessList()
@@ -442,9 +531,8 @@ BOOL ProcessManager::GetProcessList()
 
 ProcessManager::~ProcessManager()
 {
-	CloseHandle(this->pi.hProcess);
-	CloseHandle(this->pi.hThread);
+
 	cout << "Destroing class" << endl;
-	this->stopProcess();
-	this->t.detach();
+//	this->stopProcess();
+//	this->t.detach();
 }
