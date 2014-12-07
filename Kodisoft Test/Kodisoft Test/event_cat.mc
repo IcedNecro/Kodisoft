@@ -25,6 +25,11 @@ SymbolicName=PROCESS_MANAGER_ERRORS
 Language=English
 Category 2
 .
+MessageId=0x3
+SymbolicName=DEBUG_EVENTS
+Language=English
+Category 2
+.
 ; // The following are the message definitions.
 MessageIdTypedef=DWORD
 
@@ -56,6 +61,20 @@ SymbolicName=PROC_STOP_EVENT
 Language=English
 Process %1 stopped
 .
+MessageId=0x104
+Severity=Success
+Facility=Runtime
+SymbolicName=PROC_RESTART_EVENT
+Language=English
+Process %1 restarted 
+.
+MessageId=0x105
+Severity=Success
+Facility=Runtime
+SymbolicName=PROC_OPEN_EVENT
+Language=English
+Process %1 opened by id %2
+.
 MessageId=0x200
 Severity=Error
 Facility=Runtime
@@ -70,11 +89,39 @@ SymbolicName=PROC_FATAL_ERROR
 Language=English
 Unexpected termination of process %1
 .
+MessageId=0x202
+Severity=Error
+Facility=Runtime
+SymbolicName=PROC_FAILED_WHILE_OPEN
+Language=English
+Process %1 opened by id %2
+.
 MessageId=0x203
 Severity=Warning
 Facility=System
 SymbolicName=PROC_ACCESS_DENIED
 Language=English
-Process %1 starting failed
+Process %1 is under permission
+.
+MessageId=0x300
+Severity=Error
+Facility=Runtime
+SymbolicName=DEB_ATTACH_FAIL
+Language=English
+Debugger attach to %1 process failed
+.
+MessageId=0x301
+Severity=Success
+Facility=Runtime
+SymbolicName=DEB_ATTACH_SUCCESS
+Language=English
+Debugger attached to %1 process
+.
+MessageId=0x302
+Severity=Error
+Facility=Runtime
+SymbolicName=DEB_APP_FAILURE
+Language=English
+Process %1 restarting after failure
 .
 ;

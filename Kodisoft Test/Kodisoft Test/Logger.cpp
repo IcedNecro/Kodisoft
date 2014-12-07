@@ -5,12 +5,20 @@
 
 
 const char* Logger::ERR_PROCESS_FATAL_ERROR = "FATAL ERROR code=%xi: Process %S crashed!";
-const char* Logger::ERR_FAILED_WHILE_START = "ERROR code=%xi: Process %S failed while starting";
+const char* Logger::ERR_FAILED_WHILE_START = "ERROR code=%i: Process %S failed while starting";
+const char* Logger::ERR_FAILED_WHILE_RESTART = "ERROR code=%i: Cannot restart process %S";
+const char* Logger::ERR_WHILE_OPEN_PROCESS = "ERROR code=%i: Cannot open process with specified id=%i";
+
+const char* Logger::WARN_ACCESS_DENIED = "WARN code=%i: Process is Locked - no access";
+const char* Logger::WARN_DEBUGGER_ATTACH_ENABLED = "WARN code=%i: Process doesn\'t support debug";
+
 const char* Logger::LOG_PROCESS_STARTED = "Process %S started successfully";
 const char* Logger::LOG_PROCESS_RESUMED = "Process %S resumed";
 const char* Logger::LOG_PROCESS_SUSPENDED = "Process %S suspended";
-const char* Logger::LOG_PROCESS_STOPPED = "Procees %S stopped";
-
+const char* Logger::LOG_PROCESS_STOPPED = "Process %S stopped";
+const char* Logger::LOG_PROCESS_RESTARTED = "Process %S restarted";
+const char* Logger::LOG_PROCESS_OPENNED = "Process %S was opened by pID %i";
+const char* Logger::LOG_DEBUGGER_ATTACHED = "Debbuger attached to %S process with pID %i";
 
 Logger::Logger(LPWSTR filename, ProcessManager * manager)
 {

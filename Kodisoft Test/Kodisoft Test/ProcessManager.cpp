@@ -91,98 +91,106 @@ int get_cmd_line(DWORD dwId, PWSTR &buf)
 
 	PWSTR cmdLine;
 
-	if (wow)
+	try
 	{
-		// we're running as a 32-bit process in a 64-bit OS
-		PROCESS_BASIC_INFORMATION_WOW64 pbi;
-		ZeroMemory(&pbi, sizeof(pbi));
-
-		// get process information from 64-bit world
-		_NtQueryInformationProcess query = (_NtQueryInformationProcess)GetProcAddress(GetModuleHandleA("ntdll.dll"), "NtWow64QueryInformationProcess64");
-		err = query(hProcess, 0, &pbi, sizeof(pbi), NULL);
-		if (err != 0)
+		if (wow)
 		{
-			printf("NtWow64QueryInformationProcess64 failed\n");
-			CloseHandle(hProcess);
-			return GetLastError();
+			// we're running as a 32-bit process in a 64-bit OS
+			PROCESS_BASIC_INFORMATION_WOW64 pbi;
+			ZeroMemory(&pbi, sizeof(pbi));
+
+			// get process information from 64-bit world
+			_NtQueryInformationProcess query = (_NtQueryInformationProcess)GetProcAddress(GetModuleHandleA("ntdll.dll"), "NtWow64QueryInformationProcess64");
+			err = query(hProcess, 0, &pbi, sizeof(pbi), NULL);
+			if (err != 0)
+			{
+				printf("NtWow64QueryInformationProcess64 failed\n");
+				CloseHandle(hProcess);
+				return GetLastError();
+			}
+
+			// read PEB from 64-bit address space
+			_NtWow64ReadVirtualMemory64 read = (_NtWow64ReadVirtualMemory64)GetProcAddress(GetModuleHandleA("ntdll.dll"), "NtWow64ReadVirtualMemory64");
+			err = read(hProcess, pbi.PebBaseAddress, peb, pebSize, NULL);
+			if (err != 0)
+			{
+				printf("NtWow64ReadVirtualMemory64 PEB failed\n");
+				CloseHandle(hProcess);
+				return GetLastError();
+			}
+
+			// read ProcessParameters from 64-bit address space
+			PBYTE* parameters = (PBYTE*)*(LPVOID*)(peb + ProcessParametersOffset); // address in remote process adress space
+			err = read(hProcess, parameters, pp, ppSize, NULL);
+			if (err != 0)
+			{
+				printf("NtWow64ReadVirtualMemory64 Parameters failed\n");
+				CloseHandle(hProcess);
+				return GetLastError();
+			}
+
+			// read CommandLine
+			UNICODE_STRING_WOW64* pCommandLine = (UNICODE_STRING_WOW64*)(pp + CommandLineOffset);
+			cmdLine = (PWSTR)malloc(pCommandLine->MaximumLength);
+			err = read(hProcess, pCommandLine->Buffer, cmdLine, pCommandLine->MaximumLength, NULL);
+			if (err != 0)
+			{
+				printf("NtWow64ReadVirtualMemory64 Parameters failed\n");
+				CloseHandle(hProcess);
+				return GetLastError();
+			}
+		}
+		else
+		{
+			// we're running as a 32-bit process in a 32-bit OS, or as a 64-bit process in a 64-bit OS
+			PROCESS_BASIC_INFORMATION pbi;
+			ZeroMemory(&pbi, sizeof(pbi));
+
+			// get process information
+			_NtQueryInformationProcess query = (_NtQueryInformationProcess)GetProcAddress(GetModuleHandleA("ntdll.dll"), "NtQueryInformationProcess");
+			err = query(hProcess, 0, &pbi, sizeof(pbi), NULL);
+			if (!err)
+			{
+				printf("NtQueryInformationProcess failed\n");
+				CloseHandle(hProcess);
+				return GetLastError();
+			}
+
+			// read PEB
+			if (!ReadProcessMemory(hProcess, pbi.PebBaseAddress, peb, pebSize, NULL))
+			{
+				printf("ReadProcessMemory PEB failed\n");
+				CloseHandle(hProcess);
+				return GetLastError();
+			}
+
+			// read ProcessParameters
+			PBYTE* parameters = (PBYTE*)*(LPVOID*)(peb + ProcessParametersOffset); // address in remote process adress space
+			if (!ReadProcessMemory(hProcess, parameters, pp, ppSize, NULL))
+			{
+				printf("ReadProcessMemory Parameters failed\n");
+				CloseHandle(hProcess);
+				return GetLastError();
+			}
+
+			// read CommandLine
+			UNICODE_STRING* pCommandLine = (UNICODE_STRING*)(pp + CommandLineOffset);
+			cmdLine = (PWSTR)malloc(pCommandLine->MaximumLength);
+			if (!ReadProcessMemory(hProcess, pCommandLine->Buffer, cmdLine, pCommandLine->MaximumLength, NULL))
+			{
+				printf("ReadProcessMemory Parameters failed\n");
+				CloseHandle(hProcess);
+				return GetLastError();
+			}
 		}
 
-		// read PEB from 64-bit address space
-		_NtWow64ReadVirtualMemory64 read = (_NtWow64ReadVirtualMemory64)GetProcAddress(GetModuleHandleA("ntdll.dll"), "NtWow64ReadVirtualMemory64");
-		err = read(hProcess, pbi.PebBaseAddress, peb, pebSize, NULL);
-		if (err != 0)
-		{
-			printf("NtWow64ReadVirtualMemory64 PEB failed\n");
-			CloseHandle(hProcess);
-			return GetLastError();
-		}
-
-		// read ProcessParameters from 64-bit address space
-		PBYTE* parameters = (PBYTE*)*(LPVOID*)(peb + ProcessParametersOffset); // address in remote process adress space
-		err = read(hProcess, parameters, pp, ppSize, NULL);
-		if (err != 0)
-		{
-			printf("NtWow64ReadVirtualMemory64 Parameters failed\n");
-			CloseHandle(hProcess);
-			return GetLastError();
-		}
-
-		// read CommandLine
-		UNICODE_STRING_WOW64* pCommandLine = (UNICODE_STRING_WOW64*)(pp + CommandLineOffset);
-		cmdLine = (PWSTR)malloc(pCommandLine->MaximumLength);
-		err = read(hProcess, pCommandLine->Buffer, cmdLine, pCommandLine->MaximumLength, NULL);
-		if (err != 0)
-		{
-			printf("NtWow64ReadVirtualMemory64 Parameters failed\n");
-			CloseHandle(hProcess);
-			return GetLastError();
-		}
+		buf = cmdLine;
 	}
-	else
+	catch (exception())
 	{
-		// we're running as a 32-bit process in a 32-bit OS, or as a 64-bit process in a 64-bit OS
-		PROCESS_BASIC_INFORMATION pbi;
-		ZeroMemory(&pbi, sizeof(pbi));
-
-		// get process information
-		_NtQueryInformationProcess query = (_NtQueryInformationProcess)GetProcAddress(GetModuleHandleA("ntdll.dll"), "NtQueryInformationProcess");
-		err = query(hProcess, 0, &pbi, sizeof(pbi), NULL);
-		if (!err)
-		{
-			printf("NtQueryInformationProcess failed\n");
-			CloseHandle(hProcess);
-			return GetLastError();
-		}
-
-		// read PEB
-		if (!ReadProcessMemory(hProcess, pbi.PebBaseAddress, peb, pebSize, NULL))
-		{
-			printf("ReadProcessMemory PEB failed\n");
-			CloseHandle(hProcess);
-			return GetLastError();
-		}
-
-		// read ProcessParameters
-		PBYTE* parameters = (PBYTE*)*(LPVOID*)(peb + ProcessParametersOffset); // address in remote process adress space
-		if (!ReadProcessMemory(hProcess, parameters, pp, ppSize, NULL))
-		{
-			printf("ReadProcessMemory Parameters failed\n");
-			CloseHandle(hProcess);
-			return GetLastError();
-		}
-
-		// read CommandLine
-		UNICODE_STRING* pCommandLine = (UNICODE_STRING*)(pp + CommandLineOffset);
-		cmdLine = (PWSTR)malloc(pCommandLine->MaximumLength);
-		if (!ReadProcessMemory(hProcess, pCommandLine->Buffer, cmdLine, pCommandLine->MaximumLength, NULL))
-		{
-			printf("ReadProcessMemory Parameters failed\n");
-			CloseHandle(hProcess);
-			return GetLastError();
-		}
+		cout << "command line function fails" << endl;
 	}
 
-	buf = cmdLine;
 }
 
 
@@ -191,7 +199,7 @@ void ProcessManager::pauseProcess()
 
 	HANDLE hProcess = OpenProcess(PROCESS_ALL_ACCESS, false, this->pId);
 	
-	if (!this->isSuspended)
+//	if (!this->isSuspended)
 	{
 
 		HANDLE hThreadSnapshot = CreateToolhelp32Snapshot(TH32CS_SNAPTHREAD, 0);
@@ -209,31 +217,30 @@ void ProcessManager::pauseProcess()
 			{
 				HANDLE hThread = OpenThread(THREAD_ALL_ACCESS, FALSE,
 					threadEntry.th32ThreadID);
-
-				allThreadsRunning |= SuspendThread(hThread);
-
+				DWORD val = SuspendThread(hThread);
+				if (val != 0)
+					ResumeThread(hThread);
+				else
+					this->isSuspended = true;
 				CloseHandle(hThread);
 			}
 		} while (Thread32Next(hThreadSnapshot, &threadEntry));
 
 		CloseHandle(hThreadSnapshot);
-		if (!allThreadsRunning)
-			;
-		else
 		{
 			this->onPause(this);
 			this->isSuspended = true;
 		}
-	} else
+	}/* else
 	{
 		cout << "current process is already suspended" << endl;
-	}
+	}*/
 
 }
 
 void ProcessManager::resumeProcess()
 {
-	if (this->isSuspended)
+	//if (this->isSuspended)
 	{
 
 		HANDLE hThreadSnapshot = CreateToolhelp32Snapshot(TH32CS_SNAPTHREAD, 0);
@@ -245,6 +252,7 @@ void ProcessManager::resumeProcess()
 
 		BOOL allThreadsSuspended = true;
 
+		DWORD val;
 		do
 		{
 			if (threadEntry.th32OwnerProcessID == this->pId)
@@ -252,25 +260,25 @@ void ProcessManager::resumeProcess()
 				HANDLE hThread = OpenThread(THREAD_ALL_ACCESS, FALSE,
 					threadEntry.th32ThreadID);
 
-				allThreadsSuspended |= ResumeThread(hThread);
+				val = ResumeThread(hThread);
 				
 				CloseHandle(hThread);
 			}
 		} while (Thread32Next(hThreadSnapshot, &threadEntry));
 
 		CloseHandle(hThreadSnapshot);
-		if(!allThreadsSuspended)
-			;
-		else
+		//else
 		{
+			if (val <= 1)
+				this->isSuspended = false;
+
 			this->onResume(this);
-			this->isSuspended = false;
 		}
 	}
-	 else 
+	 /*else 
 	 {
 		 cout << "current process is already resumed" << endl;
-	 }
+	 }*/
 	
 }
 
@@ -310,14 +318,24 @@ void ProcessManager::setOnProcessResumeListener(void(*func)(ProcessManager *))
 
 void ProcessManager::restartProcess()
 {
-	PROCESS_INFORMATION pi;
 	STARTUPINFO cif;
+	PROCESS_INFORMATION pi;
 	ZeroMemory(&cif, sizeof(STARTUPINFO));
-
+	this->isSuspended = false;
 	if (!CreateProcess(NULL, LPWSTR(this->path.c_str()), NULL, NULL, FALSE, 0, NULL, NULL, &cif, &pi))
+	{
 		Logger::error(PROC_FAILED_WHILE_STARTED, this, GetLastError());
+		cout << GetLastError() << " error " << GetLastError() << endl;
+	}
 	else
+	{
+		this->pId = DWORD(pi.dwProcessId);
+		t->detach();
+		delete t;
+		t = new thread(&ProcessManager::getInfo, this);
+
 		this->onStart(this);
+	}
 }
 
 void ProcessManager::startProcess()
@@ -326,14 +344,21 @@ void ProcessManager::startProcess()
 	PROCESS_INFORMATION pi;
 	ZeroMemory(&cif, sizeof(STARTUPINFO));
 	this->isSuspended = false;
-	if (!CreateProcess(NULL, LPWSTR(this->path.c_str()), NULL, NULL, FALSE, 0, NULL, NULL, &cif, &pi))
+	HANDLE hProcess = OpenProcess(PROCESS_ALL_ACCESS, false, this->pId);
+
+	DWORD exit_code = DWORD(1);
+	GetExitCodeProcess(hProcess, &exit_code);
+
+	if (!CreateProcess(NULL, LPWSTR(this->path.c_str()), NULL, NULL, FALSE, 0, NULL, NULL, &cif, &pi) && exit_code!=STILL_ACTIVE)
 	{
 		Logger::error(PROC_FAILED_WHILE_STARTED, this, GetLastError());
+		cout << GetLastError() << " error " << GetLastError() << endl;
 	}
 	else
 	{
-		this->pId = pi.dwProcessId;
-		t = thread(&ProcessManager::getInfo, this);
+		this->pId = DWORD(pi.dwProcessId);
+		
+		t = new thread(&ProcessManager::getInfo, this);
 		
 		this->onStart(this);
 	}
@@ -377,7 +402,16 @@ ProcessManager::ProcessManager(DWORD pId)
 
 	if (handle == NULL)
 	{
+		DWORD err = GetLastError();
 
+		if (err == ERROR_ACCESS_DENIED)
+		{
+			Logger::log(PROC_ACCESS_DENIED, this);
+		}
+		else
+		{
+			Logger::log(PROC_FAILED_WHILE_OPEN, this);
+		}
 	}
 	else
 	{
@@ -385,7 +419,6 @@ ProcessManager::ProcessManager(DWORD pId)
 		get_cmd_line(pId, buf);
 		this->path = buf;
 		this->pId = pId;
-		printf("%S\n",buf);
 		this->isSuspended = false;
 
 		this->onStop = [](ProcessManager * pm)
@@ -407,8 +440,7 @@ ProcessManager::ProcessManager(DWORD pId)
 		{
 			Logger::log(PROC_SUSPEND_EVENT, pm);
 		};
-
-	//	t = thread(ProcessManager::getInfo, this);
+		t = new thread(ProcessManager::getInfo, this);
 	}
 }
 
@@ -421,27 +453,32 @@ HANDLE& ProcessManager::getProcessHandle()
 
 void ProcessManager::getInfo(ProcessManager *manager)
 {
-	while (1)
+	if (DebugActiveProcess(manager->pId))
 	{
-		DWORD exit_code;
-		
-		GetExitCodeProcess(manager->getProcessHandle(), &exit_code);
-		cout << exit_code << endl;
-		if (exit_code == STILL_ACTIVE)
+		Logger::log(DEB_ATTACH_SUCCESS, manager);
+		while (1)
 		{
-			cout << "Application crash!" << endl;
-		}
-		else if (exit_code == 0)
-		{
-			manager->t.detach();
-			break;
-		}else
-		{
-//			manager->restartProcess();
+			DWORD exit_code;
+			DEBUG_EVENT dEvent;
 
+			if (WaitForDebugEvent(&dEvent, INFINITE))
+			{
+				ContinueDebugEvent(dEvent.dwProcessId, dEvent.dwThreadId, DBG_CONTINUE);
+				if (dEvent.dwDebugEventCode == EXIT_PROCESS_DEBUG_EVENT)
+				{
+					HANDLE hProcess = OpenProcess(PROCESS_ALL_ACCESS, false, manager->pId);
+					Logger::error(DEB_APP_FAILURE, manager);
+					DebugBreakProcess(hProcess);
+
+					manager->restartProcess();
+					break;
+				}
+			}
 		}
-		Sleep(1000);
-	}
+	}	
+	else
+		Logger::log(DEB_ATTACH_FAIL, manager);
+
 }
 
 void ProcessManager::getProcessInfo()
@@ -451,7 +488,9 @@ void ProcessManager::getProcessInfo()
 	HANDLE hProcess = OpenProcess(PROCESS_ALL_ACCESS, false, pId);
 
 	cout << "Process id:\t" << this->pId << endl;
-		if (EXIT_INFO == STILL_ACTIVE)
+	GetExitCodeProcess(hProcess, &EXIT_INFO);
+	cout << "exit:" << EXIT_INFO << endl;
+	if (EXIT_INFO == STILL_ACTIVE)
 	{
 		if (!this->isSuspended)
 			cout << "is active";

@@ -59,6 +59,15 @@
 //
 #define PROCESS_MANAGER_ERRORS           ((WORD)0x00000002L)
 
+//
+// MessageId: DEBUG_EVENTS
+//
+// MessageText:
+//
+// Category 2
+//
+#define DEBUG_EVENTS                     ((WORD)0x00000003L)
+
  // The following are the message definitions.
 //
 // MessageId: PROC_SUCCESSFULLY_STARTED
@@ -97,6 +106,24 @@
 #define PROC_STOP_EVENT                  ((DWORD)0x00010103L)
 
 //
+// MessageId: PROC_RESTART_EVENT
+//
+// MessageText:
+//
+// Process %1 restarted 
+//
+#define PROC_RESTART_EVENT               ((DWORD)0x00010104L)
+
+//
+// MessageId: PROC_OPEN_EVENT
+//
+// MessageText:
+//
+// Process %1 opened by id %2
+//
+#define PROC_OPEN_EVENT                  ((DWORD)0x00010105L)
+
+//
 // MessageId: PROC_FAILED_WHILE_STARTED
 //
 // MessageText:
@@ -119,7 +146,34 @@
 //
 // MessageText:
 //
-// Process %1 starting failed
+// Process %1 is under permission
 //
 #define PROC_ACCESS_DENIED               ((DWORD)0x80000203L)
+
+//
+// MessageId: DEB_ATTACH_FAIL
+//
+// MessageText:
+//
+// Debugger attach to %1 process failed
+//
+#define DEB_ATTACH_FAIL                  ((DWORD)0xC0010300L)
+
+//
+// MessageId: DEB_ATTACH_SUCCESS
+//
+// MessageText:
+//
+// Debugger attached to %1 process
+//
+#define DEB_ATTACH_SUCCESS               ((DWORD)0x00010301L)
+
+//
+// MessageId: DEB_APP_FAILURE
+//
+// MessageText:
+//
+// Process %1 restarting after failure
+//
+#define DEB_APP_FAILURE                  ((DWORD)0xC0010302L)
 

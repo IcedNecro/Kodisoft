@@ -24,6 +24,7 @@
 #include<Psapi.h>
 #include"event_cat.h"
 
+#define UNICODE
 using namespace std;
 
 
