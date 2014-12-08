@@ -1,5 +1,5 @@
 var searchData=
 [
-  ['restartprocess',['restartProcess',['../class_process_manager.html#a1d2886645115a6ead83e19caf0e5ea1f',1,'ProcessManager']]],
-  ['resumeprocess',['resumeProcess',['../class_process_manager.html#a619fc4c91ff976a32ddd2ac4df145cd1',1,'ProcessManager']]]
+  ['restartprocess',['restartProcess',['../class_process_manager.html#a2c3cb2ec54bbec48d5ec6cea66b3eef6',1,'ProcessManager']]],
+  ['resumeprocess',['resumeProcess',['../class_process_manager.html#a397a4518985e698014f1177c49456627',1,'ProcessManager']]]
 ];

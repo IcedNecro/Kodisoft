@@ -27,7 +27,7 @@ private:
 	static const char* LOG_PROCESS_RESTARTED;
 	static const char* LOG_DEBUGGER_ATTACHED;
 	static const char* LOG_PROCESS_OPENNED;
-	static const char* LOG_PROCESS_RESTARTED;
+//	static const char* LOG_PROCESS_RESTARTED;
 	ProcessManager * pProgressManager;
 public:
 	Logger(LPWSTR, ProcessManager *);

@@ -10,34 +10,25 @@ void func()
 int main(void)
 {
 	setlocale(LC_ALL, "RUS");
-	LPWSTR l = LPWSTR(L"d:/Project1.exe");
+	LPWSTR l = LPWSTR(L"C:\\Users\\roman\\AppData\\Roaming\\uTorrent\\uTorrent.exe");
 	LPWSTR l2 = LPWSTR(L"");
 	LPCWSTR msg = LPCWSTR(L"c:/windows/notepad.exe l.txt");
 
-	//ProcessManager *m = new ProcessManager(l, l2);
-	ProcessManager *m = new ProcessManager(4012);
+	ProcessManager * m = new ProcessManager(l, l2);
+	//ProcessManager * m = new ProcessManager();
 	
 	m->startProcess();
-	//Sleep(1000);
-	//m->pauseProcess();
-	//Sleep(2000);
-	//m->resumeProcess();
-//	m->stopProcess();
-//	ProcessManager::GetProcessList();
-/*	while (WaitForSingleObject(m->getProcessHandle(), 0))
-	{
-		if (!GetCurrentProcess)
-			m->stopProcess();
-	};*/
-	/*Sleep(5000);
-	cout << "asleep" << endl;
+	m->getProcessInfo();
+	Sleep(10000);
+
 	m->pauseProcess();
-	Sleep(5000);
-	cout << "resumed" << endl;
+	Sleep(10000);
+
 	m->resumeProcess();
-	Sleep(5000);
-	cout << "finished" << endl;*/
-	_tsystem(L"pause");
+	Sleep(10000);
+	m->stopProcess();
+	WaitForSingleObject(m->getProcessHandle(), INFINITE);
+	//_tsystem(L"pause");
 	return 0;
 }
 

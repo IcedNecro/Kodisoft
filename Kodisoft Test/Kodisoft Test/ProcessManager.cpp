@@ -194,105 +194,101 @@ int get_cmd_line(DWORD dwId, PWSTR &buf)
 }
 
 
-void ProcessManager::pauseProcess()
+char * ProcessManager::getTime()
 {
+	const char * dateTemplate = "[%2i-%2i-%2i %2i:%2i:%2i]";
+	SYSTEMTIME st;
+	GetSystemTime(&st);
+	char * _str = new char[200];
 
+	sprintf_s(_str, 200, dateTemplate, st.wDay, st.wMonth, st.wYear, st.wHour, st.wMinute, st.wSecond);
+	return _str;
+}
+
+bool ProcessManager::pauseProcess()
+{
 	HANDLE hProcess = OpenProcess(PROCESS_ALL_ACCESS, false, this->pId);
-	
-//	if (!this->isSuspended)
+	HANDLE hThreadSnapshot = CreateToolhelp32Snapshot(TH32CS_SNAPTHREAD, 0);
+
+	THREADENTRY32 threadEntry;
+	threadEntry.dwSize = sizeof(THREADENTRY32);
+
+	Thread32First(hThreadSnapshot, &threadEntry);
+
+	BOOL allThreadsRunning = true;
+
+	do
 	{
-
-		HANDLE hThreadSnapshot = CreateToolhelp32Snapshot(TH32CS_SNAPTHREAD, 0);
-
-		THREADENTRY32 threadEntry;
-		threadEntry.dwSize = sizeof(THREADENTRY32);
-
-		Thread32First(hThreadSnapshot, &threadEntry);
-
-		BOOL allThreadsRunning = true;
-
-		do
+		if (threadEntry.th32OwnerProcessID == this->pId)
 		{
-			if (threadEntry.th32OwnerProcessID == this->pId)
-			{
-				HANDLE hThread = OpenThread(THREAD_ALL_ACCESS, FALSE,
-					threadEntry.th32ThreadID);
-				DWORD val = SuspendThread(hThread);
-				if (val != 0)
-					ResumeThread(hThread);
-				else
-					this->isSuspended = true;
-				CloseHandle(hThread);
-			}
-		} while (Thread32Next(hThreadSnapshot, &threadEntry));
-
-		CloseHandle(hThreadSnapshot);
-		{
-			this->onPause(this);
-			this->isSuspended = true;
+			HANDLE hThread = OpenThread(THREAD_ALL_ACCESS, FALSE,
+				threadEntry.th32ThreadID);
+			DWORD val = SuspendThread(hThread);
+			if (val != 0)
+				ResumeThread(hThread);
+			else
+				this->isSuspended = true;
+			CloseHandle(hThread);
 		}
-	}/* else
-	{
-		cout << "current process is already suspended" << endl;
-	}*/
+	} while (Thread32Next(hThreadSnapshot, &threadEntry));
 
+	CloseHandle(hThreadSnapshot);
+	this->onPause(this);
+	cout << ProcessManager::getTime() << " process " << this->pId << " paused " << endl;
+//	this->isSuspended = true;
+
+	return this->isSuspended;
 }
 
-void ProcessManager::resumeProcess()
+bool ProcessManager::resumeProcess()
 {
-	//if (this->isSuspended)
+
+	HANDLE hThreadSnapshot = CreateToolhelp32Snapshot(TH32CS_SNAPTHREAD, 0);
+
+	THREADENTRY32 threadEntry;
+	threadEntry.dwSize = sizeof(THREADENTRY32);
+
+	Thread32First(hThreadSnapshot, &threadEntry);
+
+	BOOL allThreadsSuspended = true;
+
+	DWORD val;
+	do
 	{
-
-		HANDLE hThreadSnapshot = CreateToolhelp32Snapshot(TH32CS_SNAPTHREAD, 0);
-
-		THREADENTRY32 threadEntry;
-		threadEntry.dwSize = sizeof(THREADENTRY32);
-
-		Thread32First(hThreadSnapshot, &threadEntry);
-
-		BOOL allThreadsSuspended = true;
-
-		DWORD val;
-		do
+		if (threadEntry.th32OwnerProcessID == this->pId)
 		{
-			if (threadEntry.th32OwnerProcessID == this->pId)
-			{
-				HANDLE hThread = OpenThread(THREAD_ALL_ACCESS, FALSE,
-					threadEntry.th32ThreadID);
+			HANDLE hThread = OpenThread(THREAD_ALL_ACCESS, FALSE,
+				threadEntry.th32ThreadID);
 
-				val = ResumeThread(hThread);
+			val = ResumeThread(hThread);
 				
-				CloseHandle(hThread);
-			}
-		} while (Thread32Next(hThreadSnapshot, &threadEntry));
-
-		CloseHandle(hThreadSnapshot);
-		//else
-		{
-			if (val <= 1)
-				this->isSuspended = false;
-
-			this->onResume(this);
+			CloseHandle(hThread);
 		}
-	}
-	 /*else 
-	 {
-		 cout << "current process is already resumed" << endl;
-	 }*/
-	
+	} while (Thread32Next(hThreadSnapshot, &threadEntry));
+
+	CloseHandle(hThreadSnapshot);
+	if (val <= 1)
+		this->isSuspended = false;
+	else this->isSuspended = true;
+
+	this->onResume(this);
+	cout << ProcessManager::getTime() << " process " << this->pId << " resumed " << endl;
+	return this->isSuspended;
 }
 
-void ProcessManager::stopProcess()
+bool ProcessManager::stopProcess()
 {
-	UINT exit_code = 0x0000042;
-	cout << "LOL " << exit_code << endl;
+	UINT exit_code = 0;
 	HANDLE hProcess = OpenProcess(PROCESS_ALL_ACCESS, false, this->pId);
 	if (!TerminateProcess(hProcess, exit_code))
-		cout<<"err"<<endl;
+	{
+		cout << ProcessManager::getTime() << " ERROR: enable to stop process " << this->pId<<" code "<< GetLastError() << endl;
+		return false;
+	}
 	else
 	{
-		this->onStop(this);
-		//Logger::log(PROC_STOP_EVENT, this);
+		cout << ProcessManager::getTime() << " process " << this->pId << " stopped" << endl; this->onStop(this);
+		return true;
 	}
 }
 
@@ -316,30 +312,42 @@ void ProcessManager::setOnProcessResumeListener(void(*func)(ProcessManager *))
 	this->onResume = func;
 }
 
-void ProcessManager::restartProcess()
+bool ProcessManager::restartProcess()
 {
 	STARTUPINFO cif;
 	PROCESS_INFORMATION pi;
+
+	if (t->joinable())
+	{
+		delete t;
+	}
+
+	this->stopProcess();
 	ZeroMemory(&cif, sizeof(STARTUPINFO));
 	this->isSuspended = false;
 	if (!CreateProcess(NULL, LPWSTR(this->path.c_str()), NULL, NULL, FALSE, 0, NULL, NULL, &cif, &pi))
 	{
 		Logger::error(PROC_FAILED_WHILE_STARTED, this, GetLastError());
-		cout << GetLastError() << " error " << GetLastError() << endl;
+		cout << ProcessManager::getTime() << " ERROR: process " << this->pId << " when restarted - code "<< GetLastError() << endl;
+		return false;
 	}
 	else
 	{
 		this->pId = DWORD(pi.dwProcessId);
-		t->detach();
-		delete t;
-		t = new thread(&ProcessManager::getInfo, this);
+		cout << ProcessManager::getTime() << " process " << this->pId << " restarted" << endl; 
+		this->onStop(this);
+
+		t = new thread(&ProcessManager::debugLoop, this);
 
 		this->onStart(this);
+		return true;
 	}
 }
 
-void ProcessManager::startProcess()
+bool ProcessManager::startProcess()
 {
+	SYSTEMTIME st;
+	GetSystemTime(&st);
 	STARTUPINFO cif;
 	PROCESS_INFORMATION pi;
 	ZeroMemory(&cif, sizeof(STARTUPINFO));
@@ -352,23 +360,20 @@ void ProcessManager::startProcess()
 	if (!CreateProcess(NULL, LPWSTR(this->path.c_str()), NULL, NULL, FALSE, 0, NULL, NULL, &cif, &pi) && exit_code!=STILL_ACTIVE)
 	{
 		Logger::error(PROC_FAILED_WHILE_STARTED, this, GetLastError());
-		cout << GetLastError() << " error " << GetLastError() << endl;
+		cout << ProcessManager::getTime() << " process start failed" << endl; 
+		return false;
 	}
 	else
 	{
+	
 		this->pId = DWORD(pi.dwProcessId);
-		
-		t = new thread(&ProcessManager::getInfo, this);
+		cout << ProcessManager::getTime() << " process " << this->pId << " started successfully " << endl;
+
+		t = new thread(&ProcessManager::debugLoop, this);
 		
 		this->onStart(this);
+		return true;
 	}
-}
-
-bool ProcessManager::reopenProcess()
-{
-
-	HANDLE hProcess = OpenProcess(PROCESS_ALL_ACCESS, FALSE, this->pId);
-	return true;
 }
 
 ProcessManager::ProcessManager(LPWSTR _cmd_prompt_path, LPWSTR _args)
@@ -406,11 +411,13 @@ ProcessManager::ProcessManager(DWORD pId)
 
 		if (err == ERROR_ACCESS_DENIED)
 		{
+			cout << getTime() << " unable to open " << pId << ": access denied" << endl;
 			Logger::log(PROC_ACCESS_DENIED, this);
 		}
 		else
 		{
-			Logger::log(PROC_FAILED_WHILE_OPEN, this);
+			cout << getTime() << " unable to open " << pId << endl;
+//			Logger::log(PROC_FAILED_WHILE_OPEN, this);
 		}
 	}
 	else
@@ -440,7 +447,8 @@ ProcessManager::ProcessManager(DWORD pId)
 		{
 			Logger::log(PROC_SUSPEND_EVENT, pm);
 		};
-		t = new thread(ProcessManager::getInfo, this);
+		cout << getTime() << " process opened " << pId << endl;
+		t = new thread(ProcessManager::debugLoop, this);
 	}
 }
 
@@ -451,55 +459,95 @@ HANDLE& ProcessManager::getProcessHandle()
 	return hProcess;
 }
 
-void ProcessManager::getInfo(ProcessManager *manager)
+void ProcessManager::debugLoop(ProcessManager *manager)
 {
 	if (DebugActiveProcess(manager->pId))
 	{
 		Logger::log(DEB_ATTACH_SUCCESS, manager);
+		cout << ProcessManager::getTime() <<" debuger attached to process "<< manager->pId << endl;
 		while (1)
 		{
 			DWORD exit_code;
 			DEBUG_EVENT dEvent;
-
-			if (WaitForDebugEvent(&dEvent, INFINITE))
+			
+			if (WaitForDebugEvent(&dEvent,INFINITE))
 			{
-				ContinueDebugEvent(dEvent.dwProcessId, dEvent.dwThreadId, DBG_CONTINUE);
+				GetExitCodeProcess(manager->getProcessHandle(), &exit_code);
+ 
 				if (dEvent.dwDebugEventCode == EXIT_PROCESS_DEBUG_EVENT)
 				{
-					HANDLE hProcess = OpenProcess(PROCESS_ALL_ACCESS, false, manager->pId);
-					Logger::error(DEB_APP_FAILURE, manager);
-					DebugBreakProcess(hProcess);
+					DebugActiveProcessStop(manager->pId);
+					if (exit_code != 0)
+					{
+						cout << ProcessManager::getTime() << " unexpected process termination - process" << manager->pId << endl;
+
+						manager->restartProcess();
+					}
+					return;
+				}
+				if (dEvent.dwDebugEventCode == RIP_EVENT)
+				{
+					DebugActiveProcessStop(manager->pId);
+					cout << ProcessManager::getTime() << " unexpected process termination - process" << manager->pId << endl;
+
+					manager->restartProcess();
+					return;
+				}
+				
+				ContinueDebugEvent(dEvent.dwProcessId, dEvent.dwThreadId, DBG_EXCEPTION_NOT_HANDLED);
+				
+			}
+
+		}
+	}	
+	else
+	{
+		Logger::log(DEB_ATTACH_FAIL, manager);
+		cout << ProcessManager::getTime() << " Cannot attach debuger to process " << manager->pId << endl;
+
+		while (1)
+		{
+			DWORD exit_code=DWORD();
+			GetExitCodeProcess(manager->getProcessHandle(), &exit_code);
+			if (exit_code != STILL_ACTIVE)
+			{
+				if (exit_code != 0)
+				{
+					cout << ProcessManager::getTime() << " unexpected process termination - process" << manager->pId << endl;
 
 					manager->restartProcess();
 					break;
 				}
 			}
 		}
-	}	
-	else
-		Logger::log(DEB_ATTACH_FAIL, manager);
-
+	}
 }
 
 void ProcessManager::getProcessInfo()
 {
 	DWORD EXIT_INFO = DWORD(999);
-
+	DWORD sz = DWORD(200);
+	LPWSTR _exec = new WCHAR[100];
 	HANDLE hProcess = OpenProcess(PROCESS_ALL_ACCESS, false, pId);
-
-	cout << "Process id:\t" << this->pId << endl;
-	GetExitCodeProcess(hProcess, &EXIT_INFO);
-	cout << "exit:" << EXIT_INFO << endl;
-	if (EXIT_INFO == STILL_ACTIVE)
+	if (hProcess != NULL)
 	{
-		if (!this->isSuspended)
-			cout << "is active";
-		else
-			cout << "is suspended" << endl;
+		QueryFullProcessImageName(hProcess, 0, _exec, &sz);
+
+		GetExitCodeProcess(hProcess, &EXIT_INFO);
+		LPWSTR status;
+		if (EXIT_INFO == STILL_ACTIVE)
+		{
+			if (!this->isSuspended)
+				status = L"ACTIVE";
+			else
+				status = L"SUSPENDED";
+		} else	status = L"INACTIVE";
+		printf("%s Process id:%i\t%S\t%S\n", getTime(), this->pId, _exec, status);
+
 	}
 	else
-		cout << "is innactive" << endl;
-	
+	{
+	}
 }
 
 LPWSTR ProcessManager::getProcessPath()
@@ -543,7 +591,6 @@ BOOL ProcessManager::GetProcessList()
 		hProcess = OpenProcess(PROCESS_ALL_ACCESS, FALSE, pe32.th32ProcessID);
 		DWORD sz = DWORD(400);
 		LPWSTR sCmdLineInfo = new WCHAR[200];
-	//	cout <<"\nerror code:"<< GetLastError() << endl;
 		QueryFullProcessImageName(hProcess, 0, sCmdLineInfo, &sz);
 		
 		PWSTR buf;
@@ -570,8 +617,6 @@ BOOL ProcessManager::GetProcessList()
 
 ProcessManager::~ProcessManager()
 {
-
-	cout << "Destroing class" << endl;
-//	this->stopProcess();
-//	this->t.detach();
+	WaitForSingleObject(this->getProcessHandle(), INFINITE);
+	delete t;
 }

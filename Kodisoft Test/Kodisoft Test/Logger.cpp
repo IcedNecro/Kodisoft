@@ -40,7 +40,6 @@ void Logger::log(DWORD eventID, ProcessManager * procManager)
 	{
 	case PROC_SUCCESSFULLY_STARTED:
 		sprintf_s(_str, 1000, Logger::LOG_PROCESS_STARTED, procManager->getProcessPath());
-	//	cout << _report_event[0] << endl;
 		break;
 	case PROC_SUSPEND_EVENT:
 		sprintf_s(_str, 1000, Logger::LOG_PROCESS_SUSPENDED, procManager->getProcessPath());
@@ -51,6 +50,16 @@ void Logger::log(DWORD eventID, ProcessManager * procManager)
 	case PROC_STOP_EVENT:
 		sprintf_s(_str, 1000, Logger::LOG_PROCESS_STOPPED, procManager->getProcessPath());
 		break;
+	case PROC_RESTART_EVENT:
+		sprintf_s(_str, 1000, Logger::LOG_PROCESS_RESTARTED, procManager->getProcessPath());
+		break;
+	case PROC_OPEN_EVENT:
+		sprintf_s(_str, 1000, Logger::LOG_PROCESS_OPENNED, procManager->getProcessPath(), procManager->pId);
+		break;
+	case DEB_ATTACH_SUCCESS:
+		sprintf_s(_str, 1000, Logger::LOG_DEBUGGER_ATTACHED, procManager->getProcessPath(), procManager->pId);
+		break;
+//	case 
 	}
 
 	*_report_event = LPCSTR(_str);

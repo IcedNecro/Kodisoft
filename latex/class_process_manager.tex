@@ -10,21 +10,22 @@
 \item 
 \hyperlink{class_process_manager_aeb235e3509127e76fbc1f9c525603120}{Process\+Manager} (L\+P\+W\+S\+T\+R, L\+P\+W\+S\+T\+R)
 \item 
-\hypertarget{class_process_manager_a37ddbc730a38922c9b7a0dafb0b7ab55}{{\bfseries Process\+Manager} (D\+W\+O\+R\+D)}\label{class_process_manager_a37ddbc730a38922c9b7a0dafb0b7ab55}
-
+\hyperlink{class_process_manager_a37ddbc730a38922c9b7a0dafb0b7ab55}{Process\+Manager} (D\+W\+O\+R\+D)
+\item 
+\hyperlink{class_process_manager_a41b83a8ef0a801ca3aee9a3d82568ac1}{Process\+Manager} ()
 \item 
 L\+P\+W\+S\+T\+R \hyperlink{class_process_manager_a8c5aa33cb2a82c784ff2fcef6d44b9c0}{get\+Process\+Path} ()
 \item 
 \hypertarget{class_process_manager_a0ad5c900976a56f7b2ebc0c12f52cbaf}{D\+W\+O\+R\+D {\bfseries get\+Running\+Thread\+Info} ()}\label{class_process_manager_a0ad5c900976a56f7b2ebc0c12f52cbaf}
 
 \item 
-void \hyperlink{class_process_manager_ab76d213c40e638d7f9010514c55b297c}{pause\+Process} ()
+bool \hyperlink{class_process_manager_a271267c549451c89be3a85948f6220d2}{pause\+Process} ()
 \item 
-void \hyperlink{class_process_manager_a619fc4c91ff976a32ddd2ac4df145cd1}{resume\+Process} ()
+bool \hyperlink{class_process_manager_a397a4518985e698014f1177c49456627}{resume\+Process} ()
 \item 
-void \hyperlink{class_process_manager_a3b451bc1c673b5439c9aae679a6d98f9}{stop\+Process} ()
+bool \hyperlink{class_process_manager_a98a33242eded5ec7098c58ca5382d0a8}{stop\+Process} ()
 \item 
-void \hyperlink{class_process_manager_a1d2886645115a6ead83e19caf0e5ea1f}{restart\+Process} ()
+bool \hyperlink{class_process_manager_a2c3cb2ec54bbec48d5ec6cea66b3eef6}{restart\+Process} ()
 \item 
 void \hyperlink{class_process_manager_a44dcace533e34ae32b1b87f869027b69}{get\+Process\+Info} ()
 \item 
@@ -33,7 +34,7 @@ void \hyperlink{class_process_manager_a44dcace533e34ae32b1b87f869027b69}{get\+Pr
 \item 
 H\+A\+N\+D\+L\+E \& \hyperlink{class_process_manager_a9ef3daadbc5c9fbadf2b27959fa6ad48}{get\+Process\+Handle} ()
 \item 
-void \hyperlink{class_process_manager_aabe96d5c6ae637b751b512220e5979ec}{start\+Process} ()
+bool \hyperlink{class_process_manager_a2b7cdddccd6e70b341075f2f69422948}{start\+Process} ()
 \item 
 void \hyperlink{class_process_manager_a14bf654b6b333cf41b632c49d9a8efef}{set\+On\+Process\+Stop\+Listener} (void($\ast$func)(\hyperlink{class_process_manager}{Process\+Manager} $\ast$))
 \item 
@@ -46,8 +47,7 @@ void \hyperlink{class_process_manager_a97612a29cefa1f517635e096c1e91691}{set\+On
 \subsection*{Загальнодоступні статичні елементи}
 \begin{DoxyCompactItemize}
 \item 
-\hypertarget{class_process_manager_a3d9add158edf3b5112981bf231394c41}{static B\+O\+O\+L {\bfseries Get\+Process\+List} ()}\label{class_process_manager_a3d9add158edf3b5112981bf231394c41}
-
+static B\+O\+O\+L \hyperlink{class_process_manager_a3d9add158edf3b5112981bf231394c41}{Get\+Process\+List} ()
 \end{DoxyCompactItemize}
 \subsection*{Дружні класи}
 \begin{DoxyCompactItemize}
@@ -62,7 +62,7 @@ void \hyperlink{class_process_manager_a97612a29cefa1f517635e096c1e91691}{set\+On
 \begin{DoxyItemize}
 \item {\bfseries Open new process with specified path and arguments.} Creates new process and handles it's state. Notice that some processes may not allow you to start or perform any another operation with them. Class hasn't any access to system processes, so don't be wondered if it wouldn't work with some processes  
 \item {\bfseries Make class to be able to handle already opened process} Specify id of currently running process. As I noticed earlier, class has some permissions of access.  
-\end{DoxyItemize}Handling process crash is made with Debug Api (Win\+Api). Some processes don't supports debugging (system processes, or simple processes such as notepad.\+exe or calc.\+exe). So in this cases we cannot restart process when it fails \+:( \begin{DoxyAuthor}{Автор}
+\end{DoxyItemize}Handling process crash is made with Debug Api (Win\+Api). Some processes don't supports debugging (system processes, or simple processes such as notepad.\+exe or calc.\+exe). So in this cases for restarting process I used Get\+Exit\+Code\+Process function to recieve exit code \+:( \begin{DoxyAuthor}{Автор}
 -\/ Roman Statkevich, Kyiv Polytechic Insitute Contact me by email \href{mailto:romanstatkevich@gmail.com}{\tt romanstatkevich@gmail.\+com} 
 \end{DoxyAuthor}
 
@@ -76,9 +76,25 @@ void \hyperlink{class_process_manager_a97612a29cefa1f517635e096c1e91691}{set\+On
 \item[{L\+P\+W\+S\+T\+R}]{\+\_\+args}
 \end{DoxyParamCaption}
 )}}\label{class_process_manager_aeb235e3509127e76fbc1f9c525603120}
-\begin{DoxyItemize}
-\item path -\/ path to the process executable in your file system \end{DoxyItemize}
-
+Constructor that is defined for creating new process via Create\+Process() To start process, you also have to call \hyperlink{class_process_manager_a2b7cdddccd6e70b341075f2f69422948}{Process\+Manager\+::start\+Process()} method, that also starts debugging thread for process you started \begin{DoxyItemize}
+\item \+\_\+cmd\+\_\+line\+\_\+path -\/ path to the process executable in your file system \item \+\_\+args -\/ comand line arguments to pass to process \end{DoxyItemize}
+\hypertarget{class_process_manager_a37ddbc730a38922c9b7a0dafb0b7ab55}{\index{Process\+Manager@{Process\+Manager}!Process\+Manager@{Process\+Manager}}
+\index{Process\+Manager@{Process\+Manager}!Process\+Manager@{Process\+Manager}}
+\subsubsection[{Process\+Manager}]{\setlength{\rightskip}{0pt plus 5cm}Process\+Manager\+::\+Process\+Manager (
+\begin{DoxyParamCaption}
+\item[{D\+W\+O\+R\+D}]{p\+Id}
+\end{DoxyParamCaption}
+)}}\label{class_process_manager_a37ddbc730a38922c9b7a0dafb0b7ab55}
+Constructor, that opens currently running process by p\+Id passed into it It starts debugging thread for opened process \begin{DoxyItemize}
+\item p\+Id -\/ I\+D of process you want to open and monitor \end{DoxyItemize}
+\hypertarget{class_process_manager_a41b83a8ef0a801ca3aee9a3d82568ac1}{\index{Process\+Manager@{Process\+Manager}!Process\+Manager@{Process\+Manager}}
+\index{Process\+Manager@{Process\+Manager}!Process\+Manager@{Process\+Manager}}
+\subsubsection[{Process\+Manager}]{\setlength{\rightskip}{0pt plus 5cm}Process\+Manager\+::\+Process\+Manager (
+\begin{DoxyParamCaption}
+{}
+\end{DoxyParamCaption}
+)}}\label{class_process_manager_a41b83a8ef0a801ca3aee9a3d82568ac1}
+Default constructor 
 
 \subsection{Опис методів компонент}
 \hypertarget{class_process_manager_a9ef3daadbc5c9fbadf2b27959fa6ad48}{\index{Process\+Manager@{Process\+Manager}!get\+Process\+Handle@{get\+Process\+Handle}}
@@ -98,7 +114,14 @@ handle of process being monitored by class
 {}
 \end{DoxyParamCaption}
 )}}\label{class_process_manager_a44dcace533e34ae32b1b87f869027b69}
-Output information about process (executable, current state, process id) \hypertarget{class_process_manager_a8c5aa33cb2a82c784ff2fcef6d44b9c0}{\index{Process\+Manager@{Process\+Manager}!get\+Process\+Path@{get\+Process\+Path}}
+Output information about process (executable, current state, process id) \hypertarget{class_process_manager_a3d9add158edf3b5112981bf231394c41}{\index{Process\+Manager@{Process\+Manager}!Get\+Process\+List@{Get\+Process\+List}}
+\index{Get\+Process\+List@{Get\+Process\+List}!Process\+Manager@{Process\+Manager}}
+\subsubsection[{Get\+Process\+List}]{\setlength{\rightskip}{0pt plus 5cm}B\+O\+O\+L Process\+Manager\+::\+Get\+Process\+List (
+\begin{DoxyParamCaption}
+{}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily [static]}}}\label{class_process_manager_a3d9add158edf3b5112981bf231394c41}
+Shows the list of currently running processes with it's executables, command lines and p\+I\+D's \hypertarget{class_process_manager_a8c5aa33cb2a82c784ff2fcef6d44b9c0}{\index{Process\+Manager@{Process\+Manager}!get\+Process\+Path@{get\+Process\+Path}}
 \index{get\+Process\+Path@{get\+Process\+Path}!Process\+Manager@{Process\+Manager}}
 \subsubsection[{get\+Process\+Path}]{\setlength{\rightskip}{0pt plus 5cm}L\+P\+W\+S\+T\+R Process\+Manager\+::get\+Process\+Path (
 \begin{DoxyParamCaption}
@@ -108,27 +131,27 @@ Output information about process (executable, current state, process id) \hypert
 Method returns string with process path in file system \begin{DoxyReturn}{Повертає}
 path of process executable in local file system 
 \end{DoxyReturn}
-\hypertarget{class_process_manager_ab76d213c40e638d7f9010514c55b297c}{\index{Process\+Manager@{Process\+Manager}!pause\+Process@{pause\+Process}}
+\hypertarget{class_process_manager_a271267c549451c89be3a85948f6220d2}{\index{Process\+Manager@{Process\+Manager}!pause\+Process@{pause\+Process}}
 \index{pause\+Process@{pause\+Process}!Process\+Manager@{Process\+Manager}}
-\subsubsection[{pause\+Process}]{\setlength{\rightskip}{0pt plus 5cm}void Process\+Manager\+::pause\+Process (
+\subsubsection[{pause\+Process}]{\setlength{\rightskip}{0pt plus 5cm}bool Process\+Manager\+::pause\+Process (
 \begin{DoxyParamCaption}
 {}
 \end{DoxyParamCaption}
-)}}\label{class_process_manager_ab76d213c40e638d7f9010514c55b297c}
-Methods suspends all threads, that belong to current process, if current process is running \hypertarget{class_process_manager_a1d2886645115a6ead83e19caf0e5ea1f}{\index{Process\+Manager@{Process\+Manager}!restart\+Process@{restart\+Process}}
+)}}\label{class_process_manager_a271267c549451c89be3a85948f6220d2}
+Methods suspends all threads, that belong to current process, if current process is running \hypertarget{class_process_manager_a2c3cb2ec54bbec48d5ec6cea66b3eef6}{\index{Process\+Manager@{Process\+Manager}!restart\+Process@{restart\+Process}}
 \index{restart\+Process@{restart\+Process}!Process\+Manager@{Process\+Manager}}
-\subsubsection[{restart\+Process}]{\setlength{\rightskip}{0pt plus 5cm}void Process\+Manager\+::restart\+Process (
+\subsubsection[{restart\+Process}]{\setlength{\rightskip}{0pt plus 5cm}bool Process\+Manager\+::restart\+Process (
 \begin{DoxyParamCaption}
 {}
 \end{DoxyParamCaption}
-)}}\label{class_process_manager_a1d2886645115a6ead83e19caf0e5ea1f}
-Method restarts process with the same command line as it had started before \hypertarget{class_process_manager_a619fc4c91ff976a32ddd2ac4df145cd1}{\index{Process\+Manager@{Process\+Manager}!resume\+Process@{resume\+Process}}
+)}}\label{class_process_manager_a2c3cb2ec54bbec48d5ec6cea66b3eef6}
+Method restarts process with the same command line as it had started before \hypertarget{class_process_manager_a397a4518985e698014f1177c49456627}{\index{Process\+Manager@{Process\+Manager}!resume\+Process@{resume\+Process}}
 \index{resume\+Process@{resume\+Process}!Process\+Manager@{Process\+Manager}}
-\subsubsection[{resume\+Process}]{\setlength{\rightskip}{0pt plus 5cm}void Process\+Manager\+::resume\+Process (
+\subsubsection[{resume\+Process}]{\setlength{\rightskip}{0pt plus 5cm}bool Process\+Manager\+::resume\+Process (
 \begin{DoxyParamCaption}
 {}
 \end{DoxyParamCaption}
-)}}\label{class_process_manager_a619fc4c91ff976a32ddd2ac4df145cd1}
+)}}\label{class_process_manager_a397a4518985e698014f1177c49456627}
 Method resumes all threads of current process, if current process is suspended \hypertarget{class_process_manager_a0c0a42010c6e7949fc6cbebf853cbceb}{\index{Process\+Manager@{Process\+Manager}!set\+On\+Process\+Pause\+Listener@{set\+On\+Process\+Pause\+Listener}}
 \index{set\+On\+Process\+Pause\+Listener@{set\+On\+Process\+Pause\+Listener}!Process\+Manager@{Process\+Manager}}
 \subsubsection[{set\+On\+Process\+Pause\+Listener}]{\setlength{\rightskip}{0pt plus 5cm}void Process\+Manager\+::set\+On\+Process\+Pause\+Listener (
@@ -136,20 +159,16 @@ Method resumes all threads of current process, if current process is suspended \
 \item[{void($\ast$)({\bf Process\+Manager} $\ast$)}]{func}
 \end{DoxyParamCaption}
 )}}\label{class_process_manager_a0c0a42010c6e7949fc6cbebf853cbceb}
-\begin{DoxyItemize}
+Sets function that is called when process paused \begin{DoxyItemize}
 \item func -\/ pointer to function that would be set as callback function when process pauses by method call
 \begin{DoxyCode}
-\hyperlink{class_process_manager_ab76d213c40e638d7f9010514c55b297c}{pauseProcess}() 
+\hyperlink{class_process_manager_a271267c549451c89be3a85948f6220d2}{pauseProcess}() 
 \end{DoxyCode}
  . func prototype must look like this\+: 
 \begin{DoxyCode}
 \textcolor{keywordtype}{void} func(\hyperlink{class_process_manager}{ProcessManager} *ptr) 
 \end{DoxyCode}
- 
-\begin{DoxyCode}
-ptr 
-\end{DoxyCode}
- allows you to perform some operations you want with your manager in your callback function, such as logging, watching manager and process state etc. \end{DoxyItemize}
+ {\itshape ptr} allows you to perform some operations you want with your manager in your callback function, such as logging, watching manager and process state etc. \end{DoxyItemize}
 \hypertarget{class_process_manager_a719434f2fe5c003f355b712dcddad850}{\index{Process\+Manager@{Process\+Manager}!set\+On\+Process\+Resume\+Listener@{set\+On\+Process\+Resume\+Listener}}
 \index{set\+On\+Process\+Resume\+Listener@{set\+On\+Process\+Resume\+Listener}!Process\+Manager@{Process\+Manager}}
 \subsubsection[{set\+On\+Process\+Resume\+Listener}]{\setlength{\rightskip}{0pt plus 5cm}void Process\+Manager\+::set\+On\+Process\+Resume\+Listener (
@@ -157,20 +176,16 @@ ptr
 \item[{void($\ast$)({\bf Process\+Manager} $\ast$)}]{func}
 \end{DoxyParamCaption}
 )}}\label{class_process_manager_a719434f2fe5c003f355b712dcddad850}
-\begin{DoxyItemize}
+Sets function that is called when process resumed \begin{DoxyItemize}
 \item func -\/ pointer to function that would be set as callback function when process resumes by method call
 \begin{DoxyCode}
-\hyperlink{class_process_manager_a619fc4c91ff976a32ddd2ac4df145cd1}{resumeProcess}() 
+\hyperlink{class_process_manager_a397a4518985e698014f1177c49456627}{resumeProcess}() 
 \end{DoxyCode}
  . func prototype must look like this\+: 
 \begin{DoxyCode}
 \textcolor{keywordtype}{void} func(\hyperlink{class_process_manager}{ProcessManager} *ptr) 
 \end{DoxyCode}
- 
-\begin{DoxyCode}
-ptr 
-\end{DoxyCode}
- allows you to perform some operations you want with your manager in your callback function, such as logging, watching manager and process state etc. \end{DoxyItemize}
+ {\itshape ptr} allows you to perform some operations you want with your manager in your callback function, such as logging, watching manager and process state etc. \end{DoxyItemize}
 \hypertarget{class_process_manager_a97612a29cefa1f517635e096c1e91691}{\index{Process\+Manager@{Process\+Manager}!set\+On\+Process\+Start\+Listener@{set\+On\+Process\+Start\+Listener}}
 \index{set\+On\+Process\+Start\+Listener@{set\+On\+Process\+Start\+Listener}!Process\+Manager@{Process\+Manager}}
 \subsubsection[{set\+On\+Process\+Start\+Listener}]{\setlength{\rightskip}{0pt plus 5cm}void Process\+Manager\+::set\+On\+Process\+Start\+Listener (
@@ -178,20 +193,16 @@ ptr
 \item[{void($\ast$)({\bf Process\+Manager} $\ast$)}]{func}
 \end{DoxyParamCaption}
 )}}\label{class_process_manager_a97612a29cefa1f517635e096c1e91691}
-\begin{DoxyItemize}
+Sets function that is called when process started \begin{DoxyItemize}
 \item func -\/ pointer to function that would be set as callback function when process starts by method call
 \begin{DoxyCode}
-\hyperlink{class_process_manager_aabe96d5c6ae637b751b512220e5979ec}{startProcess}() 
+\hyperlink{class_process_manager_a2b7cdddccd6e70b341075f2f69422948}{startProcess}() 
 \end{DoxyCode}
  . func prototype must look like this\+: 
 \begin{DoxyCode}
 \textcolor{keywordtype}{void} func(\hyperlink{class_process_manager}{ProcessManager} *ptr) 
 \end{DoxyCode}
- 
-\begin{DoxyCode}
-ptr 
-\end{DoxyCode}
- allows you to perform some operations you want with your manager in your callback function, such as logging, watching manager and process state etc. \end{DoxyItemize}
+ {\itshape ptr} allows you to perform some operations you want with your manager in your callback function, such as logging, watching manager and process state etc. \end{DoxyItemize}
 \hypertarget{class_process_manager_a14bf654b6b333cf41b632c49d9a8efef}{\index{Process\+Manager@{Process\+Manager}!set\+On\+Process\+Stop\+Listener@{set\+On\+Process\+Stop\+Listener}}
 \index{set\+On\+Process\+Stop\+Listener@{set\+On\+Process\+Stop\+Listener}!Process\+Manager@{Process\+Manager}}
 \subsubsection[{set\+On\+Process\+Stop\+Listener}]{\setlength{\rightskip}{0pt plus 5cm}void Process\+Manager\+::set\+On\+Process\+Stop\+Listener (
@@ -199,34 +210,30 @@ ptr
 \item[{void($\ast$)({\bf Process\+Manager} $\ast$)}]{func}
 \end{DoxyParamCaption}
 )}}\label{class_process_manager_a14bf654b6b333cf41b632c49d9a8efef}
-\begin{DoxyItemize}
+Sets function that is called when process stopped \begin{DoxyItemize}
 \item func -\/ pointer to function that would be set as callback function when process terminates by method call
 \begin{DoxyCode}
-\hyperlink{class_process_manager_a3b451bc1c673b5439c9aae679a6d98f9}{stopProcess}() 
+\hyperlink{class_process_manager_a98a33242eded5ec7098c58ca5382d0a8}{stopProcess}() 
 \end{DoxyCode}
  . func prototype must look like this\+: 
 \begin{DoxyCode}
 \textcolor{keywordtype}{void} func(\hyperlink{class_process_manager}{ProcessManager} *ptr) 
 \end{DoxyCode}
- 
-\begin{DoxyCode}
-ptr 
-\end{DoxyCode}
- allows you to perform some operations you want with your manager in your callback function, such as logging, watching manager and process state etc. \end{DoxyItemize}
-\hypertarget{class_process_manager_aabe96d5c6ae637b751b512220e5979ec}{\index{Process\+Manager@{Process\+Manager}!start\+Process@{start\+Process}}
+ {\itshape ptr} allows you to perform some operations you want with your manager in your callback function, such as logging, watching manager and process state etc. \end{DoxyItemize}
+\hypertarget{class_process_manager_a2b7cdddccd6e70b341075f2f69422948}{\index{Process\+Manager@{Process\+Manager}!start\+Process@{start\+Process}}
 \index{start\+Process@{start\+Process}!Process\+Manager@{Process\+Manager}}
-\subsubsection[{start\+Process}]{\setlength{\rightskip}{0pt plus 5cm}void Process\+Manager\+::start\+Process (
+\subsubsection[{start\+Process}]{\setlength{\rightskip}{0pt plus 5cm}bool Process\+Manager\+::start\+Process (
 \begin{DoxyParamCaption}
 {}
 \end{DoxyParamCaption}
-)}}\label{class_process_manager_aabe96d5c6ae637b751b512220e5979ec}
-Starts process with command line arguments, that were defined in constructor. Starts monitoring of process crash \hypertarget{class_process_manager_a3b451bc1c673b5439c9aae679a6d98f9}{\index{Process\+Manager@{Process\+Manager}!stop\+Process@{stop\+Process}}
+)}}\label{class_process_manager_a2b7cdddccd6e70b341075f2f69422948}
+Starts process with command line arguments, that were defined in constructor. Starts monitoring of process crash \hypertarget{class_process_manager_a98a33242eded5ec7098c58ca5382d0a8}{\index{Process\+Manager@{Process\+Manager}!stop\+Process@{stop\+Process}}
 \index{stop\+Process@{stop\+Process}!Process\+Manager@{Process\+Manager}}
-\subsubsection[{stop\+Process}]{\setlength{\rightskip}{0pt plus 5cm}void Process\+Manager\+::stop\+Process (
+\subsubsection[{stop\+Process}]{\setlength{\rightskip}{0pt plus 5cm}bool Process\+Manager\+::stop\+Process (
 \begin{DoxyParamCaption}
 {}
 \end{DoxyParamCaption}
-)}}\label{class_process_manager_a3b451bc1c673b5439c9aae679a6d98f9}
+)}}\label{class_process_manager_a98a33242eded5ec7098c58ca5382d0a8}
 Method terminates process 
 
 Документація цих класів була створена з файлів\+:\begin{DoxyCompactItemize}
