@@ -80,6 +80,7 @@
     <Text Include="ReadMe.txt" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="command_line_executor.h" />
     <ClInclude Include="event_cat.h" />
     <ClInclude Include="Logger.h" />
     <ClInclude Include="ProcessManager.h" />

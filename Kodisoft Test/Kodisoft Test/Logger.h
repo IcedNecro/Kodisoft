@@ -18,7 +18,8 @@ private:
 	static const char* ERR_WHILE_OPEN_PROCESS;
 	
 	static const char* WARN_ACCESS_DENIED;
-	static const char* WARN_DEBUGGER_ATTACH_ENABLED;
+	static const char* WARN_DEBUGGER_ATTACH_DISABLED;
+	static const char* WARN_PROCESS_EXIT;
 
 	static const char* LOG_PROCESS_STARTED;
 	static const char* LOG_PROCESS_SUSPENDED;
@@ -27,12 +28,28 @@ private:
 	static const char* LOG_PROCESS_RESTARTED;
 	static const char* LOG_DEBUGGER_ATTACHED;
 	static const char* LOG_PROCESS_OPENNED;
-//	static const char* LOG_PROCESS_RESTARTED;
-	ProcessManager * pProgressManager;
 public:
-	Logger(LPWSTR, ProcessManager *);
-	//	void operator<<(LPSTR);
+
+	/**
+	 */
+	static VOID warning(DWORD, ProcessManager*, DWORD);
+	/**
+	 * Static method to send error message to Event Log
+	 * @arg eventID - id of event (specific ID from event_cat.h
+	 * @arg procManager - pointer to ProcessManager object. As Logger is declared
+	 * as friendly class to ProcessManager, Logger can access private fields of
+	 * ProcessManager
+	 * @arg sysErrId - error-code, recieved from GetLastError() function
+	 */
 	static VOID error(DWORD, ProcessManager*, DWORD);
+
+	/**
+	* Static method to send usual message to Event Log
+	* @arg eventID - id of event (specific ID from event_cat.h
+	* @arg procManager - pointer to ProcessManager object. As Logger is declared
+	* as friendly class to ProcessManager, Logger can access private fields of
+	* ProcessManager
+	*/
 	static VOID log(DWORD, ProcessManager*);
 	~Logger();
 };

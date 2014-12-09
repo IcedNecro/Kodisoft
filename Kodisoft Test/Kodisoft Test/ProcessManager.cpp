@@ -1,198 +1,9 @@
 #include "stdafx.h"
 #include "ProcessManager.h"
 #include "Logger.h"
+#include "command_line_executor.h"
 
-// NtQueryInformationProcess for pure 32 and 64-bit processes
-typedef NTSTATUS(NTAPI *_NtQueryInformationProcess)(
-	IN HANDLE ProcessHandle,
-	ULONG ProcessInformationClass,
-	OUT PVOID ProcessInformation,
-	IN ULONG ProcessInformationLength,
-	OUT PULONG ReturnLength OPTIONAL
-	);
-
-typedef NTSTATUS(NTAPI *_NtReadVirtualMemory)(
-	IN HANDLE ProcessHandle,
-	IN PVOID BaseAddress,
-	OUT PVOID Buffer,
-	IN SIZE_T Size,
-	OUT PSIZE_T NumberOfBytesRead);
-
-// NtQueryInformationProcess for 32-bit process on WOW64
-typedef NTSTATUS(NTAPI *_NtWow64ReadVirtualMemory64)(
-	IN HANDLE ProcessHandle,
-	IN PVOID64 BaseAddress,
-	OUT PVOID Buffer,
-	IN ULONG64 Size,
-	OUT PULONG64 NumberOfBytesRead);
-
-// PROCESS_BASIC_INFORMATION for pure 32 and 64-bit processes
-typedef struct _PROCESS_BASIC_INFORMATION {
-	PVOID Reserved1;
-	PVOID PebBaseAddress;
-	PVOID Reserved2[2];
-	ULONG_PTR UniqueProcessId;
-	PVOID Reserved3;
-} PROCESS_BASIC_INFORMATION;
-
-// PROCESS_BASIC_INFORMATION for 32-bit process on WOW64
-// The definition is quite funky, as we just lazily doubled sizes to match offsets...
-typedef struct _PROCESS_BASIC_INFORMATION_WOW64 {
-	PVOID Reserved1[2];
-	PVOID64 PebBaseAddress;
-	PVOID Reserved2[4];
-	ULONG_PTR UniqueProcessId[2];
-	PVOID Reserved3[2];
-} PROCESS_BASIC_INFORMATION_WOW64;
-
-typedef struct _UNICODE_STRING {
-	USHORT Length;
-	USHORT MaximumLength;
-	PWSTR  Buffer;
-} UNICODE_STRING;
-
-typedef struct _UNICODE_STRING_WOW64 {
-	USHORT Length;
-	USHORT MaximumLength;
-	PVOID64 Buffer;
-} UNICODE_STRING_WOW64;
-
-int get_cmd_line(DWORD dwId, PWSTR &buf)
-{
-	HANDLE hProcess = OpenProcess(PROCESS_QUERY_INFORMATION | PROCESS_VM_READ, FALSE, dwId);
-	DWORD err = 0;
-	if (hProcess == NULL)
-	{
-		printf("OpenProcess %u failed\n", dwId);
-		return GetLastError();
-	}
-
-	// determine if 64 or 32-bit processor
-	SYSTEM_INFO si;
-	GetNativeSystemInfo(&si);
-
-	// determine if this process is running on WOW64
-	BOOL wow;
-	IsWow64Process(GetCurrentProcess(), &wow);
-
-	// use WinDbg "dt ntdll!_PEB" command and search for ProcessParameters offset to find the truth out
-	DWORD ProcessParametersOffset = si.wProcessorArchitecture == PROCESSOR_ARCHITECTURE_AMD64 ? 0x20 : 0x10;
-	DWORD CommandLineOffset = si.wProcessorArchitecture == PROCESSOR_ARCHITECTURE_AMD64 ? 0x70 : 0x40;
-
-	// read basic info to get ProcessParameters address, we only need the beginning of PEB
-	DWORD pebSize = ProcessParametersOffset + 8;
-	PBYTE peb = (PBYTE)malloc(pebSize);
-	ZeroMemory(peb, pebSize);
-
-	// read basic info to get CommandLine address, we only need the beginning of ProcessParameters
-	DWORD ppSize = CommandLineOffset + 16;
-	PBYTE pp = (PBYTE)malloc(ppSize);
-	ZeroMemory(peb, pebSize);
-
-	PWSTR cmdLine;
-
-	try
-	{
-		if (wow)
-		{
-			// we're running as a 32-bit process in a 64-bit OS
-			PROCESS_BASIC_INFORMATION_WOW64 pbi;
-			ZeroMemory(&pbi, sizeof(pbi));
-
-			// get process information from 64-bit world
-			_NtQueryInformationProcess query = (_NtQueryInformationProcess)GetProcAddress(GetModuleHandleA("ntdll.dll"), "NtWow64QueryInformationProcess64");
-			err = query(hProcess, 0, &pbi, sizeof(pbi), NULL);
-			if (err != 0)
-			{
-				printf("NtWow64QueryInformationProcess64 failed\n");
-				CloseHandle(hProcess);
-				return GetLastError();
-			}
-
-			// read PEB from 64-bit address space
-			_NtWow64ReadVirtualMemory64 read = (_NtWow64ReadVirtualMemory64)GetProcAddress(GetModuleHandleA("ntdll.dll"), "NtWow64ReadVirtualMemory64");
-			err = read(hProcess, pbi.PebBaseAddress, peb, pebSize, NULL);
-			if (err != 0)
-			{
-				printf("NtWow64ReadVirtualMemory64 PEB failed\n");
-				CloseHandle(hProcess);
-				return GetLastError();
-			}
-
-			// read ProcessParameters from 64-bit address space
-			PBYTE* parameters = (PBYTE*)*(LPVOID*)(peb + ProcessParametersOffset); // address in remote process adress space
-			err = read(hProcess, parameters, pp, ppSize, NULL);
-			if (err != 0)
-			{
-				printf("NtWow64ReadVirtualMemory64 Parameters failed\n");
-				CloseHandle(hProcess);
-				return GetLastError();
-			}
-
-			// read CommandLine
-			UNICODE_STRING_WOW64* pCommandLine = (UNICODE_STRING_WOW64*)(pp + CommandLineOffset);
-			cmdLine = (PWSTR)malloc(pCommandLine->MaximumLength);
-			err = read(hProcess, pCommandLine->Buffer, cmdLine, pCommandLine->MaximumLength, NULL);
-			if (err != 0)
-			{
-				printf("NtWow64ReadVirtualMemory64 Parameters failed\n");
-				CloseHandle(hProcess);
-				return GetLastError();
-			}
-		}
-		else
-		{
-			// we're running as a 32-bit process in a 32-bit OS, or as a 64-bit process in a 64-bit OS
-			PROCESS_BASIC_INFORMATION pbi;
-			ZeroMemory(&pbi, sizeof(pbi));
-
-			// get process information
-			_NtQueryInformationProcess query = (_NtQueryInformationProcess)GetProcAddress(GetModuleHandleA("ntdll.dll"), "NtQueryInformationProcess");
-			err = query(hProcess, 0, &pbi, sizeof(pbi), NULL);
-			if (!err)
-			{
-				printf("NtQueryInformationProcess failed\n");
-				CloseHandle(hProcess);
-				return GetLastError();
-			}
-
-			// read PEB
-			if (!ReadProcessMemory(hProcess, pbi.PebBaseAddress, peb, pebSize, NULL))
-			{
-				printf("ReadProcessMemory PEB failed\n");
-				CloseHandle(hProcess);
-				return GetLastError();
-			}
-
-			// read ProcessParameters
-			PBYTE* parameters = (PBYTE*)*(LPVOID*)(peb + ProcessParametersOffset); // address in remote process adress space
-			if (!ReadProcessMemory(hProcess, parameters, pp, ppSize, NULL))
-			{
-				printf("ReadProcessMemory Parameters failed\n");
-				CloseHandle(hProcess);
-				return GetLastError();
-			}
-
-			// read CommandLine
-			UNICODE_STRING* pCommandLine = (UNICODE_STRING*)(pp + CommandLineOffset);
-			cmdLine = (PWSTR)malloc(pCommandLine->MaximumLength);
-			if (!ReadProcessMemory(hProcess, pCommandLine->Buffer, cmdLine, pCommandLine->MaximumLength, NULL))
-			{
-				printf("ReadProcessMemory Parameters failed\n");
-				CloseHandle(hProcess);
-				return GetLastError();
-			}
-		}
-
-		buf = cmdLine;
-	}
-	catch (exception())
-	{
-		cout << "command line function fails" << endl;
-	}
-
-}
-
+const DWORD ProcessManager::EXIT_CODE = 0x0000666;
 
 char * ProcessManager::getTime()
 {
@@ -207,87 +18,127 @@ char * ProcessManager::getTime()
 
 bool ProcessManager::pauseProcess()
 {
+	// As we know, processes almost has a few threads. So to pause whole process
+	// we should suspend all threads that are running with process. We use System
+	// Snapshot to recieve a list of threads of process
+
 	HANDLE hProcess = OpenProcess(PROCESS_ALL_ACCESS, false, this->pId);
-	HANDLE hThreadSnapshot = CreateToolhelp32Snapshot(TH32CS_SNAPTHREAD, 0);
-
-	THREADENTRY32 threadEntry;
-	threadEntry.dwSize = sizeof(THREADENTRY32);
-
-	Thread32First(hThreadSnapshot, &threadEntry);
-
-	BOOL allThreadsRunning = true;
-
-	do
+	if (hProcess != NULL)
 	{
-		if (threadEntry.th32OwnerProcessID == this->pId)
+		HANDLE hThreadSnapshot = CreateToolhelp32Snapshot(TH32CS_SNAPTHREAD, 0);
+
+		THREADENTRY32 threadEntry;
+		threadEntry.dwSize = sizeof(THREADENTRY32);
+
+		// getting first thread in list 
+		Thread32First(hThreadSnapshot, &threadEntry);
+
+		DWORD val;
+		BOOL allThreadsRunning = true;
+
+		// Loop where we get's every thread suspended
+		do
 		{
-			HANDLE hThread = OpenThread(THREAD_ALL_ACCESS, FALSE,
-				threadEntry.th32ThreadID);
-			DWORD val = SuspendThread(hThread);
-			if (val != 0)
-				ResumeThread(hThread);
-			else
-				this->isSuspended = true;
-			CloseHandle(hThread);
-		}
-	} while (Thread32Next(hThreadSnapshot, &threadEntry));
+			if (threadEntry.th32OwnerProcessID == this->pId)
+			{
+				// Open thread by specific id
+				HANDLE hThread = OpenThread(THREAD_ALL_ACCESS, FALSE,
+					threadEntry.th32ThreadID);
 
-	CloseHandle(hThreadSnapshot);
-	this->onPause(this);
-	cout << ProcessManager::getTime() << " process " << this->pId << " paused " << endl;
-//	this->isSuspended = true;
+				// if thread was suspended early, SuspendThread() will return
+				// a value that shows how much SuspendThread() was called for thread before
+				// without resuming it by ResumeThread(). So, if we called SuspendThread() 3
+				// times, we need call ResumeThread() 3 times to resume thread. This thing
+				// makes that it's unable to call SuspendThread() more then 1 time without 
+				// ResummeThread() being called
+				val = SuspendThread(hThread);
+				if (val != 0)
+					ResumeThread(hThread);
+				else
+					this->isSuspended = true;
+				CloseHandle(hThread);
+			}
+		} while (Thread32Next(hThreadSnapshot, &threadEntry));
 
-	return this->isSuspended;
+		CloseHandle(hThreadSnapshot);
+		this->onPause(this);
+		if (val == 0)
+			Logger::log(PROC_SUSPEND_EVENT, this);
+		cout << ProcessManager::getTime() << " process " << this->pId << " paused " << endl;
+
+		return this->isSuspended;
+
+	}
+	else 
+		Logger::warning(PROC_ACCESS_DENIED, this, GetLastError());
 }
-
 bool ProcessManager::resumeProcess()
 {
+	// Here we do the same thing as in pauseProcess(), with only difference that
+	// we calls ResumeThread() for each thread in process
 
-	HANDLE hThreadSnapshot = CreateToolhelp32Snapshot(TH32CS_SNAPTHREAD, 0);
-
-	THREADENTRY32 threadEntry;
-	threadEntry.dwSize = sizeof(THREADENTRY32);
-
-	Thread32First(hThreadSnapshot, &threadEntry);
-
-	BOOL allThreadsSuspended = true;
-
-	DWORD val;
-	do
+	HANDLE hProcess = OpenProcess(PROCESS_ALL_ACCESS, false, this->pId);
+	if (hProcess != NULL)
 	{
-		if (threadEntry.th32OwnerProcessID == this->pId)
+		HANDLE hThreadSnapshot = CreateToolhelp32Snapshot(TH32CS_SNAPTHREAD, 0);
+
+		THREADENTRY32 threadEntry;
+		threadEntry.dwSize = sizeof(THREADENTRY32);
+
+		Thread32First(hThreadSnapshot, &threadEntry);
+
+		BOOL allThreadsSuspended = true;
+
+		DWORD val;
+		do
 		{
-			HANDLE hThread = OpenThread(THREAD_ALL_ACCESS, FALSE,
-				threadEntry.th32ThreadID);
+			if (threadEntry.th32OwnerProcessID == this->pId)
+			{
+				HANDLE hThread = OpenThread(THREAD_ALL_ACCESS, FALSE,
+					threadEntry.th32ThreadID);
 
-			val = ResumeThread(hThread);
-				
-			CloseHandle(hThread);
-		}
-	} while (Thread32Next(hThreadSnapshot, &threadEntry));
+				val = ResumeThread(hThread);
 
-	CloseHandle(hThreadSnapshot);
-	if (val <= 1)
-		this->isSuspended = false;
-	else this->isSuspended = true;
+				CloseHandle(hThread);
+			}
+		} while (Thread32Next(hThreadSnapshot, &threadEntry));
 
-	this->onResume(this);
-	cout << ProcessManager::getTime() << " process " << this->pId << " resumed " << endl;
-	return this->isSuspended;
+		CloseHandle(hThreadSnapshot);
+
+		// here we checks if there are more than 1 time SuspendThread() being called
+		// I don't know why I put it here, because in pauseProcess() we have already made
+		// SuspendThread() to be called exactly 1 time, but let it be :)
+		if (val <= 1)
+			this->isSuspended = false;
+		else this->isSuspended = true;
+
+		Logger::log(PROC_RESUME_EVENT, this);
+
+		this->onResume(this);
+		cout << ProcessManager::getTime() << " process " << this->pId << " resumed " << endl;
+		return this->isSuspended;
+	}
+	else
+		Logger::warning(PROC_ACCESS_DENIED, this, GetLastError());
 }
 
 bool ProcessManager::stopProcess()
 {
-	UINT exit_code = 0;
+	// Here we terminates process with exit code 0, that shows that process was terminated
+	// normally
+
 	HANDLE hProcess = OpenProcess(PROCESS_ALL_ACCESS, false, this->pId);
-	if (!TerminateProcess(hProcess, exit_code))
+	
+	if (!TerminateProcess(hProcess, ProcessManager::EXIT_CODE))
 	{
-		cout << ProcessManager::getTime() << " ERROR: enable to stop process " << this->pId<<" code "<< GetLastError() << endl;
+		cout << ProcessManager::getTime() << " ERROR: unable to stop process " << this->pId<<" code "<< GetLastError() << endl;
 		return false;
 	}
 	else
 	{
 		cout << ProcessManager::getTime() << " process " << this->pId << " stopped" << endl; this->onStop(this);
+		Logger::log(PROC_STOP_EVENT, this);
+		this->onStop(this);
 		return true;
 	}
 }
@@ -316,13 +167,15 @@ bool ProcessManager::restartProcess()
 {
 	STARTUPINFO cif;
 	PROCESS_INFORMATION pi;
-
-	if (t->joinable())
+	
+	// if debug thread was created before - we should detach it and delete
+	if (t!=NULL )
 	{
+		t->detach();
 		delete t;
 	}
-
-	this->stopProcess();
+	//if process isn't stopped yet - it would be surely stopped
+	//this->stopProcess();
 	ZeroMemory(&cif, sizeof(STARTUPINFO));
 	this->isSuspended = false;
 	if (!CreateProcess(NULL, LPWSTR(this->path.c_str()), NULL, NULL, FALSE, 0, NULL, NULL, &cif, &pi))
@@ -333,12 +186,14 @@ bool ProcessManager::restartProcess()
 	}
 	else
 	{
+		// restart is successfull
 		this->pId = DWORD(pi.dwProcessId);
 		cout << ProcessManager::getTime() << " process " << this->pId << " restarted" << endl; 
 		this->onStop(this);
 
 		t = new thread(&ProcessManager::debugLoop, this);
 
+		Logger::log(PROC_RESTART_EVENT, this);
 		this->onStart(this);
 		return true;
 	}
@@ -348,29 +203,32 @@ bool ProcessManager::startProcess()
 {
 	SYSTEMTIME st;
 	GetSystemTime(&st);
+
 	STARTUPINFO cif;
 	PROCESS_INFORMATION pi;
+	
 	ZeroMemory(&cif, sizeof(STARTUPINFO));
 	this->isSuspended = false;
+	
+	// we do this to know if there isn't already launched process with such id
+	// It makes to prevent start of already opened process (via Id)
 	HANDLE hProcess = OpenProcess(PROCESS_ALL_ACCESS, false, this->pId);
 
-	DWORD exit_code = DWORD(1);
-	GetExitCodeProcess(hProcess, &exit_code);
-
-	if (!CreateProcess(NULL, LPWSTR(this->path.c_str()), NULL, NULL, FALSE, 0, NULL, NULL, &cif, &pi) && exit_code!=STILL_ACTIVE)
+	if (!CreateProcess(NULL, LPWSTR(this->path.c_str()), NULL, NULL, FALSE, 0, NULL, NULL, &cif, &pi) && hProcess==NULL)
 	{
 		Logger::error(PROC_FAILED_WHILE_STARTED, this, GetLastError());
-		cout << ProcessManager::getTime() << " process start failed" << endl; 
+		cout << ProcessManager::getTime() << " process start failed, or process is already running" << endl; 
 		return false;
 	}
 	else
 	{
-	
+		
 		this->pId = DWORD(pi.dwProcessId);
 		cout << ProcessManager::getTime() << " process " << this->pId << " started successfully " << endl;
 
 		t = new thread(&ProcessManager::debugLoop, this);
 		
+		Logger::log(PROC_SUCCESSFULLY_STARTED, this);
 		this->onStart(this);
 		return true;
 	}
@@ -378,31 +236,34 @@ bool ProcessManager::startProcess()
 
 ProcessManager::ProcessManager(LPWSTR _cmd_prompt_path, LPWSTR _args)
 {
+	// concatenation of comand line path and arguments to pass it to CreateProcess()
 	this->path = wstring(_cmd_prompt_path) + wstring(L" ") + wstring(_args);
+
+	// Initialization of default callback functions
 
 	this->onStop = [](ProcessManager * pm)
 	{
-		Logger::log(PROC_STOP_EVENT, pm);
 	};
 
 	this->onResume = [](ProcessManager * pm)
 	{
-		Logger::log(PROC_RESUME_EVENT, pm);
 	};
 
 	this->onStart = [](ProcessManager * pm)
 	{
-		Logger::log(PROC_SUCCESSFULLY_STARTED, pm);
 	};
 
 	this->onPause = [](ProcessManager * pm)
 	{
-		Logger::log(PROC_SUSPEND_EVENT, pm);
 	}; 
 }
 
 ProcessManager::ProcessManager(DWORD pId)
 { 
+	// Open process via pID
+
+	this->pId = pId;
+
 	HANDLE handle = OpenProcess(PROCESS_ALL_ACCESS, false, pId);
 
 	if (handle == NULL)
@@ -412,41 +273,41 @@ ProcessManager::ProcessManager(DWORD pId)
 		if (err == ERROR_ACCESS_DENIED)
 		{
 			cout << getTime() << " unable to open " << pId << ": access denied" << endl;
-			Logger::log(PROC_ACCESS_DENIED, this);
+			Logger::warning(PROC_ACCESS_DENIED, this, err);
 		}
 		else
 		{
 			cout << getTime() << " unable to open " << pId << endl;
-//			Logger::log(PROC_FAILED_WHILE_OPEN, this);
+			Logger::error(PROC_FAILED_WHILE_OPEN, this, err);
 		}
 	}
 	else
 	{
 		PWSTR buf;
+		// getting command line of running process
 		get_cmd_line(pId, buf);
 		this->path = buf;
-		this->pId = pId;
 		this->isSuspended = false;
+
+		// default callbacks
 
 		this->onStop = [](ProcessManager * pm)
 		{
-			Logger::log(PROC_STOP_EVENT, pm);
 		};
 
 		this->onResume = [](ProcessManager * pm)
 		{
-			Logger::log(PROC_RESUME_EVENT, pm);
 		};
 
 		this->onStart = [](ProcessManager * pm)
 		{
-			Logger::log(PROC_SUCCESSFULLY_STARTED, pm);
 		};
 
 		this->onPause = [](ProcessManager * pm)
 		{
-			Logger::log(PROC_SUSPEND_EVENT, pm);
 		};
+		Logger::log(PROC_OPEN_EVENT, this);
+
 		cout << getTime() << " process opened " << pId << endl;
 		t = new thread(ProcessManager::debugLoop, this);
 	}
@@ -461,23 +322,40 @@ HANDLE& ProcessManager::getProcessHandle()
 
 void ProcessManager::debugLoop(ProcessManager *manager)
 {
+	// The worst function I've ever wrote
+	// This is Debug Loop for our process. I don't know why some apps can be debbuged, but other not
+	// Looks like it's a properly way to handle application crash, but even it cannot handle all processes
+
 	if (DebugActiveProcess(manager->pId))
 	{
+		// debug is enabled
+
 		Logger::log(DEB_ATTACH_SUCCESS, manager);
 		cout << ProcessManager::getTime() <<" debuger attached to process "<< manager->pId << endl;
+		// debug loop
 		while (1)
 		{
 			DWORD exit_code;
 			DEBUG_EVENT dEvent;
 			
+			// getting debug event
 			if (WaitForDebugEvent(&dEvent,INFINITE))
 			{
 				GetExitCodeProcess(manager->getProcessHandle(), &exit_code);
  
+				// here I've got a very strange ocassion
+				// I've thought to check EXCEPTION_DEBUG_EVENT - if we have an exception thrown (app crash)
+				// - we restarts process. I read that when we starts debug with process startup, system puts breakpoint, which
+				// I need to skip. But also debugger raises ACCESS_VIOLATION exception at the start of process,
+				// that automaticaly crashes process and makes it unable to launch again. What is strange - when we
+				// attach debugger to an already started process - it successfully handles all exceptions, but when
+				// we restart process, it's raises exception that crash it again
+				// I decided to check EXIT_PROCESS_DEBUG_EVENT with abnormal exit code and RIP_EVENT for restart
 				if (dEvent.dwDebugEventCode == EXIT_PROCESS_DEBUG_EVENT)
 				{
+					Logger::warning(PROC_FATAL_ERROR, manager, 0);
 					DebugActiveProcessStop(manager->pId);
-					if (exit_code != 0)
+					if (exit_code != ProcessManager::EXIT_CODE)
 					{
 						cout << ProcessManager::getTime() << " unexpected process termination - process" << manager->pId << endl;
 
@@ -487,6 +365,7 @@ void ProcessManager::debugLoop(ProcessManager *manager)
 				}
 				if (dEvent.dwDebugEventCode == RIP_EVENT)
 				{
+					Logger::warning(PROC_FATAL_ERROR, manager, 0);
 					DebugActiveProcessStop(manager->pId);
 					cout << ProcessManager::getTime() << " unexpected process termination - process" << manager->pId << endl;
 
@@ -502,7 +381,7 @@ void ProcessManager::debugLoop(ProcessManager *manager)
 	}	
 	else
 	{
-		Logger::log(DEB_ATTACH_FAIL, manager);
+		Logger::warning(DEB_ATTACH_FAIL, manager, GetLastError());
 		cout << ProcessManager::getTime() << " Cannot attach debuger to process " << manager->pId << endl;
 
 		while (1)
@@ -511,14 +390,14 @@ void ProcessManager::debugLoop(ProcessManager *manager)
 			GetExitCodeProcess(manager->getProcessHandle(), &exit_code);
 			if (exit_code != STILL_ACTIVE)
 			{
-				if (exit_code != 0)
+				if (exit_code != ProcessManager::EXIT_CODE)
 				{
 					cout << ProcessManager::getTime() << " unexpected process termination - process" << manager->pId << endl;
-
+					Logger::warning(PROC_FATAL_ERROR, manager, 0);
 					manager->restartProcess();
 					break;
-				}
-			}
+				} 
+			} 
 		}
 	}
 }
@@ -547,6 +426,7 @@ void ProcessManager::getProcessInfo()
 	}
 	else
 	{
+		Logger::warning(PROC_ACCESS_DENIED, this, GetLastError());
 	}
 }
 
@@ -617,6 +497,5 @@ BOOL ProcessManager::GetProcessList()
 
 ProcessManager::~ProcessManager()
 {
-	WaitForSingleObject(this->getProcessHandle(), INFINITE);
-	delete t;
+	WaitForSingleObject(this->getProcessHandle(),INFINITE);
 }

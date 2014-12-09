@@ -4,13 +4,13 @@
 #pragma comment(lib, "advapi32.lib")
 
 
-const char* Logger::ERR_PROCESS_FATAL_ERROR = "FATAL ERROR code=%xi: Process %S crashed!";
 const char* Logger::ERR_FAILED_WHILE_START = "ERROR code=%i: Process %S failed while starting";
 const char* Logger::ERR_FAILED_WHILE_RESTART = "ERROR code=%i: Cannot restart process %S";
 const char* Logger::ERR_WHILE_OPEN_PROCESS = "ERROR code=%i: Cannot open process with specified id=%i";
 
-const char* Logger::WARN_ACCESS_DENIED = "WARN code=%i: Process is Locked - no access";
-const char* Logger::WARN_DEBUGGER_ATTACH_ENABLED = "WARN code=%i: Process doesn\'t support debug";
+const char* Logger::WARN_ACCESS_DENIED = "WARN code=%i: Process %i is Locked - no access";
+const char* Logger::WARN_DEBUGGER_ATTACH_DISABLED = "WARN code=%i: Process %i doesn\'t support debug";
+const char* Logger::WARN_PROCESS_EXIT = "WARN code=%i: Process crashed or exited";
 
 const char* Logger::LOG_PROCESS_STARTED = "Process %S started successfully";
 const char* Logger::LOG_PROCESS_RESUMED = "Process %S resumed";
@@ -20,20 +20,11 @@ const char* Logger::LOG_PROCESS_RESTARTED = "Process %S restarted";
 const char* Logger::LOG_PROCESS_OPENNED = "Process %S was opened by pID %i";
 const char* Logger::LOG_DEBUGGER_ATTACHED = "Debbuger attached to %S process with pID %i";
 
-Logger::Logger(LPWSTR filename, ProcessManager * manager)
-{
-
-	HANDLE hEventSource = ::RegisterEventSource(NULL, _T("Kodisoft Test"));
-
-	LPCWSTR* strings = new LPCWSTR[1];
-	strings[0] = L"Proc1";
-}
-
 void Logger::log(DWORD eventID, ProcessManager * procManager)
 {
 	LPCSTR * _report_event = new LPCSTR[1];
 	char* _str = new char[1000];
-	cout << procManager->getProcessPath() <<" path"<< endl;
+	//cout << procManager->getProcessPath() <<" path"<< endl;
 	HANDLE hEventSource = ::RegisterEventSource(NULL, _T("Kodisoft Test"));
 
 	switch (eventID)
@@ -59,14 +50,41 @@ void Logger::log(DWORD eventID, ProcessManager * procManager)
 	case DEB_ATTACH_SUCCESS:
 		sprintf_s(_str, 1000, Logger::LOG_DEBUGGER_ATTACHED, procManager->getProcessPath(), procManager->pId);
 		break;
-//	case 
 	}
 
 	*_report_event = LPCSTR(_str);
-
+	//cout << _str << endl;
 
 	::ReportEventA(
 		hEventSource, EVENTLOG_SUCCESS,
+		PROCESS_MANAGER_LOG, eventID, NULL, 1, 0, _report_event, NULL);
+}
+
+void Logger::warning(DWORD eventID, ProcessManager * procManager, DWORD sysErrCode)
+{
+	LPCSTR * _report_event = new LPCSTR[1];
+	char* _str = new char[1000];
+	//cout << procManager->getProcessPath() << " path" << endl;
+	HANDLE hEventSource = ::RegisterEventSource(NULL, _T("Kodisoft Test"));
+
+	switch (eventID)
+	{
+	case PROC_ACCESS_DENIED:
+		sprintf_s(_str, 1000, Logger::WARN_ACCESS_DENIED, sysErrCode, procManager->pId);
+		break;
+	case DEB_ATTACH_FAIL:
+		sprintf_s(_str, 1000, Logger::WARN_DEBUGGER_ATTACH_DISABLED, sysErrCode, procManager->pId);
+		break;
+	case PROC_FATAL_ERROR:
+		sprintf_s(_str, 1000, Logger::WARN_PROCESS_EXIT, procManager->getProcessPath());
+		break;
+	}
+
+	*_report_event = LPCSTR(_str);
+	cout << _str << endl;
+
+	::ReportEventA(
+		hEventSource, EVENTLOG_WARNING_TYPE,
 		PROCESS_MANAGER_LOG, eventID, NULL, 1, 0, _report_event, NULL);
 }
 
@@ -85,13 +103,13 @@ void Logger::error(DWORD errorID, ProcessManager * procManager, DWORD sysErrId)
 	case PROC_ACCESS_DENIED:
 		sprintf_s(_str, 1000, Logger::ERR_FAILED_WHILE_START, sysErrId, procManager->getProcessPath());
 		break;
-	case PROC_FATAL_ERROR:
-		sprintf_s(_str, 1000, Logger::ERR_FAILED_WHILE_START, sysErrId, procManager->getProcessPath());
+	case PROC_FAILED_WHILE_OPEN:
+		sprintf_s(_str, 1000, Logger::ERR_FAILED_WHILE_START, sysErrId, procManager->pId);
 		break;
 	}
 
 	*_report_event = LPCSTR(_str);
-
+	//cout << _str << endl;
 	::ReportEventA(
 		hEventSource, EVENTLOG_ERROR_TYPE,
 		PROCESS_MANAGER_ERRORS, errorID, NULL, 1, 0, _report_event, NULL);

@@ -2,6 +2,8 @@
 #include"ProcessManager.h"
 //  Forward declarations:
 
+
+
 void func()
 {
 
@@ -10,25 +12,21 @@ void func()
 int main(void)
 {
 	setlocale(LC_ALL, "RUS");
-	LPWSTR l = LPWSTR(L"C:\\Users\\roman\\AppData\\Roaming\\uTorrent\\uTorrent.exe");
-	LPWSTR l2 = LPWSTR(L"");
-	LPCWSTR msg = LPCWSTR(L"c:/windows/notepad.exe l.txt");
-
-	ProcessManager * m = new ProcessManager(l, l2);
-	//ProcessManager * m = new ProcessManager();
-	
-	m->startProcess();
-	m->getProcessInfo();
+	LPWSTR msg = LPWSTR(L"c:/windows/notepad.exe");
+	LPWSTR l = LPWSTR(L"D:\\Program Files\\sketch\\SketchUp.exe");
+	LPWSTR l2 = LPWSTR(L"b.txt");
+	//ProcessManager m = ProcessManager(msg, l2);
+	ProcessManager m = ProcessManager(756);
+	//m.startProcess();
+	m.getProcessInfo();
 	Sleep(10000);
-
-	m->pauseProcess();
+	m.pauseProcess();
 	Sleep(10000);
-
-	m->resumeProcess();
+	m.resumeProcess();
 	Sleep(10000);
-	m->stopProcess();
-	WaitForSingleObject(m->getProcessHandle(), INFINITE);
-	//_tsystem(L"pause");
+//	m.stopProcess();
+	while (1){}
+	//WaitForSingleObject(GetCurrentProcess(), INFINITE);
 	return 0;
 }
 

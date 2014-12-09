@@ -28,6 +28,9 @@
 //
 // Define the facility codes
 //
+
+
+
 #define FACILITY_SYSTEM                  0x0
 #define FACILITY_RUNTIME                 0x1
 
@@ -140,6 +143,15 @@
 // Unexpected termination of process %1
 //
 #define PROC_FATAL_ERROR                 ((DWORD)0xC0010201L)
+
+//
+// MessageId: PROC_FAILED_WHILE_OPEN
+//
+// MessageText:
+//
+// Process %1 opened by id %2
+//
+#define PROC_FAILED_WHILE_OPEN           ((DWORD)0xC0010202L)
 
 //
 // MessageId: PROC_ACCESS_DENIED

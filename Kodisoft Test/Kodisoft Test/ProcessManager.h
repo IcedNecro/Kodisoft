@@ -1,3 +1,4 @@
+#include "stdafx.h"
 #pragma once
 
 /**
@@ -31,7 +32,8 @@ class ProcessManager
 	thread * t;
 	
 	int isSuspended = -1;
-	
+
+	static const DWORD EXIT_CODE;
 
 	WORD pId;
 
@@ -51,6 +53,7 @@ class ProcessManager
 	 * process finnished abnormally
 	 */
 	static void debugLoop(ProcessManager*);
+
 
 	/**
 	 * @return - formatted date string, used in cinsole notifications
