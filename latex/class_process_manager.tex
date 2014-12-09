@@ -16,9 +16,6 @@
 \item 
 L\+P\+W\+S\+T\+R \hyperlink{class_process_manager_a8c5aa33cb2a82c784ff2fcef6d44b9c0}{get\+Process\+Path} ()
 \item 
-\hypertarget{class_process_manager_a0ad5c900976a56f7b2ebc0c12f52cbaf}{D\+W\+O\+R\+D {\bfseries get\+Running\+Thread\+Info} ()}\label{class_process_manager_a0ad5c900976a56f7b2ebc0c12f52cbaf}
-
-\item 
 bool \hyperlink{class_process_manager_a271267c549451c89be3a85948f6220d2}{pause\+Process} ()
 \item 
 bool \hyperlink{class_process_manager_a397a4518985e698014f1177c49456627}{resume\+Process} ()
@@ -28,9 +25,6 @@ bool \hyperlink{class_process_manager_a98a33242eded5ec7098c58ca5382d0a8}{stop\+P
 bool \hyperlink{class_process_manager_a2c3cb2ec54bbec48d5ec6cea66b3eef6}{restart\+Process} ()
 \item 
 void \hyperlink{class_process_manager_a44dcace533e34ae32b1b87f869027b69}{get\+Process\+Info} ()
-\item 
-\hypertarget{class_process_manager_a892aec6660bcb53b59bc643301339244}{bool {\bfseries reopen\+Process} ()}\label{class_process_manager_a892aec6660bcb53b59bc643301339244}
-
 \item 
 H\+A\+N\+D\+L\+E \& \hyperlink{class_process_manager_a9ef3daadbc5c9fbadf2b27959fa6ad48}{get\+Process\+Handle} ()
 \item 
@@ -43,6 +37,8 @@ void \hyperlink{class_process_manager_a719434f2fe5c003f355b712dcddad850}{set\+On
 void \hyperlink{class_process_manager_a0c0a42010c6e7949fc6cbebf853cbceb}{set\+On\+Process\+Pause\+Listener} (void($\ast$func)(\hyperlink{class_process_manager}{Process\+Manager} $\ast$))
 \item 
 void \hyperlink{class_process_manager_a97612a29cefa1f517635e096c1e91691}{set\+On\+Process\+Start\+Listener} (void($\ast$func)(\hyperlink{class_process_manager}{Process\+Manager} $\ast$))
+\item 
+\hyperlink{class_process_manager_aed3cd2ca11d92395228b758d39030b5f}{$\sim$\+Process\+Manager} ()
 \end{DoxyCompactItemize}
 \subsection*{Загальнодоступні статичні елементи}
 \begin{DoxyCompactItemize}
@@ -62,7 +58,7 @@ static B\+O\+O\+L \hyperlink{class_process_manager_a3d9add158edf3b5112981bf23139
 \begin{DoxyItemize}
 \item {\bfseries Open new process with specified path and arguments.} Creates new process and handles it's state. Notice that some processes may not allow you to start or perform any another operation with them. Class hasn't any access to system processes, so don't be wondered if it wouldn't work with some processes  
 \item {\bfseries Make class to be able to handle already opened process} Specify id of currently running process. As I noticed earlier, class has some permissions of access.  
-\end{DoxyItemize}Handling process crash is made with Debug Api (Win\+Api). Some processes don't supports debugging (system processes, or simple processes such as notepad.\+exe or calc.\+exe). So in this cases for restarting process I used Get\+Exit\+Code\+Process function to recieve exit code \+:( \begin{DoxyAuthor}{Автор}
+\end{DoxyItemize}Handling process crash is made with Debug Api (Win\+Api). Some processes don't supports debugging (system processes, or simple processes such as notepad.\+exe or calc.\+exe. Look like I simply hasn't 64bit debugger). So in this cases for restarting process I used Get\+Exit\+Code\+Process function to recieve exit code \+:( \begin{DoxyAuthor}{Автор}
 -\/ Roman Statkevich, Kyiv Polytechic Insitute Contact me by email \href{mailto:romanstatkevich@gmail.com}{\tt romanstatkevich@gmail.\+com} 
 \end{DoxyAuthor}
 
@@ -94,7 +90,14 @@ Constructor, that opens currently running process by p\+Id passed into it It sta
 {}
 \end{DoxyParamCaption}
 )}}\label{class_process_manager_a41b83a8ef0a801ca3aee9a3d82568ac1}
-Default constructor 
+Default constructor \hypertarget{class_process_manager_aed3cd2ca11d92395228b758d39030b5f}{\index{Process\+Manager@{Process\+Manager}!````~Process\+Manager@{$\sim$\+Process\+Manager}}
+\index{````~Process\+Manager@{$\sim$\+Process\+Manager}!Process\+Manager@{Process\+Manager}}
+\subsubsection[{$\sim$\+Process\+Manager}]{\setlength{\rightskip}{0pt plus 5cm}Process\+Manager\+::$\sim$\+Process\+Manager (
+\begin{DoxyParamCaption}
+{}
+\end{DoxyParamCaption}
+)}}\label{class_process_manager_aed3cd2ca11d92395228b758d39030b5f}
+Destructor do nothing except waiting for debug loop terminating 
 
 \subsection{Опис методів компонент}
 \hypertarget{class_process_manager_a9ef3daadbc5c9fbadf2b27959fa6ad48}{\index{Process\+Manager@{Process\+Manager}!get\+Process\+Handle@{get\+Process\+Handle}}
@@ -238,5 +241,5 @@ Method terminates process
 
 Документація цих класів була створена з файлів\+:\begin{DoxyCompactItemize}
 \item 
-D\+:/\+My\+Docs/\+Git\+Hub/\+Kodisoft/\+Kodisoft Test/\+Kodisoft Test/Process\+Manager.\+h\item 
-D\+:/\+My\+Docs/\+Git\+Hub/\+Kodisoft/\+Kodisoft Test/\+Kodisoft Test/Process\+Manager.\+cpp\end{DoxyCompactItemize}
+D\+:/\+My\+Docs/\+Git\+Hub/\+Kodisoft/\+Kodisoft\+Test/Process\+Manager.\+h\item 
+D\+:/\+My\+Docs/\+Git\+Hub/\+Kodisoft/\+Kodisoft\+Test/Process\+Manager.\+cpp\end{DoxyCompactItemize}

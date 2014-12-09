@@ -14,6 +14,22 @@
   $(document).ready(function() { searchBox.OnSelectItem(0); });
 </script>
 <link href="doxygen.css" rel="stylesheet" type="text/css" />
+<style>
+.code_line 
+{
+	margin-left:100px;
+	background-color:#FFA;
+	border: 1px solid green;
+	padding:2px;
+}
+.code_str
+{
+	margin-left: 50px;
+	margin-bottom:2px;
+	margin-top:2px;
+}
+
+</style>
 </head>
 <body>
 <div id="top"><!-- do not remove this div, it is closed by doxygen! -->
@@ -77,10 +93,45 @@ var searchBox = new SearchBox("searchBox", "search",false,'Пошук');
 <div class="title">Kodisoft test task Документація</div>  </div>
 </div><!--header-->
 <div class="contents">
+<h5>Short Guide</h6>
+<p>There are two ways to use class ProcessManager</p>
+<ul>
+	<li>Creating new process from executable</li>
+	<p>Specify path to process executable and command line arguments, and then call <b>startProcess()</b> method to create process</p>
+	<div class="code_line">
+		<p class="code_str">ProcessManager p = ProcessManager(L"c:/windows/notepad.exe",L"a.txt");</p>
+		<p class="code_str">p.startProcess();</p>
+	</div>
+	<p>To do some operations you should use loops such this</p>
+	<div class="code_line">
+		<p class="code_str">ProcessManager p = ProcessManager(L"c:/windows/notepad.exe",L"a.txt");</p>
+		<p class="code_str">p.startProcess();</p>
+		<p class="code_str">int swch;</p>
+		<p class="code_str">while(1)</p>
+		<p class="code_str">{</p>
+		<p class="code_str">//...entering swch</p>
+		<p class="code_str">&emsp;switch(swch) {</p>
+		<p class="code_str">&emsp;&emsp;case 1: p.pauseProcess(); break;</p>
+		<p class="code_str">&emsp;&emsp;case 2: p.resumeProcess(); break;</p>
+		<p class="code_str">&emsp;&emsp;case 3: p.restartProcess(); break;</p>
+		<p class="code_str">&emsp;/* .....*/</p>
+		<p class="code_str">&emsp;&emsp;default: //...</p>
+		<p class="code_str">&emsp;}</p>
+
+		<p class="code_str">}</p>
+
+	</div>
+	
+	<li>Openning currently running process</li>
+	<p>To open current running process, you should specify id of process</p>
+	<div class="code_line">
+		<p class="code_str">ProcessManager p = ProcessManager(1234);</p>
+	</div>
+</ul>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Документація до Kodisoft test task створена Понеділок, 8 грудня 2014 19:11:22 системою &#160;<a href="http://www.doxygen.org/index.html">
+Документація до Kodisoft test task створена Вівторок, 9 грудня 2014 08:15:57 системою &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.8
 </small></address>

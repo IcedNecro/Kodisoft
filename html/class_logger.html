@@ -81,7 +81,6 @@ var searchBox = new SearchBox("searchBox", "search",false,'Пошук');
 </div><!-- top -->
 <div class="header">
   <div class="summary">
-<a href="#pub-methods">Загальнодоступні елементи</a> &#124;
 <a href="#pub-static-methods">Загальнодоступні статичні елементи</a> &#124;
 <a href="class_logger-members.html">Список всіх елементів</a>  </div>
   <div class="headertitle">
@@ -91,34 +90,154 @@ var searchBox = new SearchBox("searchBox", "search",false,'Пошук');
 
 <p><code>#include &lt;<a class="el" href="_logger_8h_source.html">Logger.h</a>&gt;</code></p>
 <table class="memberdecls">
-<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-methods"></a>
-Загальнодоступні елементи</h2></td></tr>
-<tr class="memitem:ad5976c5d766dc98681afeee715bfc9db"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ad5976c5d766dc98681afeee715bfc9db"></a>
-&#160;</td><td class="memItemRight" valign="bottom"><b>Logger</b> (LPWSTR, <a class="el" href="class_process_manager.html">ProcessManager</a> *)</td></tr>
-<tr class="separator:ad5976c5d766dc98681afeee715bfc9db"><td class="memSeparator" colspan="2">&#160;</td></tr>
-</table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-static-methods"></a>
 Загальнодоступні статичні елементи</h2></td></tr>
-<tr class="memitem:aab36b3b942f3649646cc6a9868b5eacc"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="aab36b3b942f3649646cc6a9868b5eacc"></a>
-static VOID&#160;</td><td class="memItemRight" valign="bottom"><b>warning</b> ()</td></tr>
-<tr class="separator:aab36b3b942f3649646cc6a9868b5eacc"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a4a18f512e2d977a9bcb98af5d56db1d1"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a4a18f512e2d977a9bcb98af5d56db1d1"></a>
-static VOID&#160;</td><td class="memItemRight" valign="bottom"><b>error</b> (DWORD, <a class="el" href="class_process_manager.html">ProcessManager</a> *, DWORD)</td></tr>
+<tr class="memitem:afe180eaa48c2d6092da54ef80a9a54c5"><td class="memItemLeft" align="right" valign="top">static VOID&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_logger.html#afe180eaa48c2d6092da54ef80a9a54c5">warning</a> (DWORD, <a class="el" href="class_process_manager.html">ProcessManager</a> *, DWORD)</td></tr>
+<tr class="separator:afe180eaa48c2d6092da54ef80a9a54c5"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a4a18f512e2d977a9bcb98af5d56db1d1"><td class="memItemLeft" align="right" valign="top">static VOID&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_logger.html#a4a18f512e2d977a9bcb98af5d56db1d1">error</a> (DWORD, <a class="el" href="class_process_manager.html">ProcessManager</a> *, DWORD)</td></tr>
 <tr class="separator:a4a18f512e2d977a9bcb98af5d56db1d1"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ae246b48011da71bcd9f734a367e7646e"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ae246b48011da71bcd9f734a367e7646e"></a>
-static VOID&#160;</td><td class="memItemRight" valign="bottom"><b>log</b> (DWORD, <a class="el" href="class_process_manager.html">ProcessManager</a> *)</td></tr>
+<tr class="memitem:ae246b48011da71bcd9f734a367e7646e"><td class="memItemLeft" align="right" valign="top">static VOID&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_logger.html#ae246b48011da71bcd9f734a367e7646e">log</a> (DWORD, <a class="el" href="class_process_manager.html">ProcessManager</a> *)</td></tr>
 <tr class="separator:ae246b48011da71bcd9f734a367e7646e"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Детальний опис</h2>
 <div class="textblock"><p><a class="el" href="class_logger.html">Logger</a> class defined for logging <a class="el" href="class_process_manager.html">ProcessManager</a> events. It use Windows event logging for making logs about all actions an errors caused by <a class="el" href="class_process_manager.html">ProcessManager</a> <a class="el" href="class_logger.html">Logger</a> uses <a class="el" href="event__cat_8h_source.html">event_cat.h</a> constants that were generated and compiled by mc tool from event_cat.mc to identify massage type and id. Also it contains a set of string message templates that are used to send logs to Event Log </p>
-</div><hr/>Документація цих класів була створена з файлів:<ul>
-<li>D:/MyDocs/GitHub/Kodisoft/Kodisoft Test/Kodisoft Test/<a class="el" href="_logger_8h_source.html">Logger.h</a></li>
-<li>D:/MyDocs/GitHub/Kodisoft/Kodisoft Test/Kodisoft Test/Logger.cpp</li>
+</div><h2 class="groupheader">Опис методів компонент</h2>
+<a class="anchor" id="a4a18f512e2d977a9bcb98af5d56db1d1"></a>
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void Logger::error </td>
+          <td>(</td>
+          <td class="paramtype">DWORD&#160;</td>
+          <td class="paramname"><em>errorID</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="class_process_manager.html">ProcessManager</a> *&#160;</td>
+          <td class="paramname"><em>procManager</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">DWORD&#160;</td>
+          <td class="paramname"><em>sysErrId</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">static</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<p>Static method to send error message to Event Log </p><ul>
+<li>errorID - id of event (specific ID from <a class="el" href="event__cat_8h_source.html">event_cat.h</a> </li>
+<li>procManager - pointer to <a class="el" href="class_process_manager.html">ProcessManager</a> object. As <a class="el" href="class_logger.html">Logger</a> is declared as friendly class to <a class="el" href="class_process_manager.html">ProcessManager</a>, <a class="el" href="class_logger.html">Logger</a> can access private fields of <a class="el" href="class_process_manager.html">ProcessManager</a> </li>
+<li>sysErrId - error-code, recieved from GetLastError() function </li>
+</ul>
+
+</div>
+</div>
+<a class="anchor" id="ae246b48011da71bcd9f734a367e7646e"></a>
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void Logger::log </td>
+          <td>(</td>
+          <td class="paramtype">DWORD&#160;</td>
+          <td class="paramname"><em>eventID</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="class_process_manager.html">ProcessManager</a> *&#160;</td>
+          <td class="paramname"><em>procManager</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">static</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<p>Static method to send usual message to Event Log </p><ul>
+<li>eventID - id of event (specific ID from <a class="el" href="event__cat_8h_source.html">event_cat.h</a> </li>
+<li>procManager - pointer to <a class="el" href="class_process_manager.html">ProcessManager</a> object. As <a class="el" href="class_logger.html">Logger</a> is declared as friendly class to <a class="el" href="class_process_manager.html">ProcessManager</a>, <a class="el" href="class_logger.html">Logger</a> can access private fields of <a class="el" href="class_process_manager.html">ProcessManager</a> </li>
+</ul>
+
+</div>
+</div>
+<a class="anchor" id="afe180eaa48c2d6092da54ef80a9a54c5"></a>
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void Logger::warning </td>
+          <td>(</td>
+          <td class="paramtype">DWORD&#160;</td>
+          <td class="paramname"><em>eventID</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="class_process_manager.html">ProcessManager</a> *&#160;</td>
+          <td class="paramname"><em>procManager</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">DWORD&#160;</td>
+          <td class="paramname"><em>sysErrCode</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">static</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<p>Static method to send warning message to Event Log </p><ul>
+<li>eventID - id of event (specific ID from <a class="el" href="event__cat_8h_source.html">event_cat.h</a> </li>
+<li>procManager - pointer to <a class="el" href="class_process_manager.html">ProcessManager</a> object. As <a class="el" href="class_logger.html">Logger</a> is declared as friendly class to <a class="el" href="class_process_manager.html">ProcessManager</a>, <a class="el" href="class_logger.html">Logger</a> can access private fields of <a class="el" href="class_process_manager.html">ProcessManager</a> </li>
+<li>sysErrId - error-code, recieved from GetLastError() function </li>
+</ul>
+
+</div>
+</div>
+<hr/>Документація цих класів була створена з файлів:<ul>
+<li>D:/MyDocs/GitHub/Kodisoft/KodisoftTest/<a class="el" href="_logger_8h_source.html">Logger.h</a></li>
+<li>D:/MyDocs/GitHub/Kodisoft/KodisoftTest/Logger.cpp</li>
 </ul>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Документація до Kodisoft test task створена Понеділок, 8 грудня 2014 19:11:22 системою &#160;<a href="http://www.doxygen.org/index.html">
+Документація до Kodisoft test task створена Вівторок, 9 грудня 2014 08:15:56 системою &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.8
 </small></address>

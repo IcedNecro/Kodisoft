@@ -4,7 +4,7 @@
 <meta http-equiv="Content-Type" content="text/xhtml;charset=UTF-8"/>
 <meta http-equiv="X-UA-Compatible" content="IE=9"/>
 <meta name="generator" content="Doxygen 1.8.8"/>
-<title>Kodisoft test task: Текст програми D:/MyDocs/GitHub/Kodisoft/Kodisoft Test/Kodisoft Test/Logger.h</title>
+<title>Kodisoft test task: Текст програми D:/MyDocs/GitHub/Kodisoft/KodisoftTest/Logger.h</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="jquery.js"></script>
 <script type="text/javascript" src="dynsections.js"></script>
@@ -78,7 +78,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Пошук');
 
 <div id="nav-path" class="navpath">
   <ul>
-<li class="navelem"><a class="el" href="dir_275089585c7fc1b5fd5d7d42c69cb1da.html">D:</a></li><li class="navelem"><a class="el" href="dir_fa750c8bf5fd0e3b510e6dadbccabdfb.html">MyDocs</a></li><li class="navelem"><a class="el" href="dir_69a49d86dc5af7c22fd5209f21e14b05.html">GitHub</a></li><li class="navelem"><a class="el" href="dir_b8069260be89ea3973c01f89ef817802.html">Kodisoft</a></li><li class="navelem"><a class="el" href="dir_3c89465fb89975ef5e225476d62fb762.html">Kodisoft Test</a></li><li class="navelem"><a class="el" href="dir_71bae22dd374bc88b0c9c46f92a7dcb7.html">Kodisoft Test</a></li>  </ul>
+<li class="navelem"><a class="el" href="dir_275089585c7fc1b5fd5d7d42c69cb1da.html">D:</a></li><li class="navelem"><a class="el" href="dir_fa750c8bf5fd0e3b510e6dadbccabdfb.html">MyDocs</a></li><li class="navelem"><a class="el" href="dir_69a49d86dc5af7c22fd5209f21e14b05.html">GitHub</a></li><li class="navelem"><a class="el" href="dir_b8069260be89ea3973c01f89ef817802.html">Kodisoft</a></li><li class="navelem"><a class="el" href="dir_d56a6ef66450f2d5c4eee697aa796ce7.html">KodisoftTest</a></li>  </ul>
 </div>
 </div><!-- top -->
 <div class="header">
@@ -99,31 +99,34 @@ var searchBox = new SearchBox("searchBox", "search",false,'Пошук');
 <div class="line"><a name="l00018"></a><span class="lineno">   18</span>&#160;    <span class="keyword">static</span> <span class="keyword">const</span> <span class="keywordtype">char</span>* ERR_WHILE_OPEN_PROCESS;</div>
 <div class="line"><a name="l00019"></a><span class="lineno">   19</span>&#160;    </div>
 <div class="line"><a name="l00020"></a><span class="lineno">   20</span>&#160;    <span class="keyword">static</span> <span class="keyword">const</span> <span class="keywordtype">char</span>* WARN_ACCESS_DENIED;</div>
-<div class="line"><a name="l00021"></a><span class="lineno">   21</span>&#160;    <span class="keyword">static</span> <span class="keyword">const</span> <span class="keywordtype">char</span>* WARN_DEBUGGER_ATTACH_ENABLED;</div>
-<div class="line"><a name="l00022"></a><span class="lineno">   22</span>&#160;</div>
-<div class="line"><a name="l00023"></a><span class="lineno">   23</span>&#160;    <span class="keyword">static</span> <span class="keyword">const</span> <span class="keywordtype">char</span>* LOG_PROCESS_STARTED;</div>
-<div class="line"><a name="l00024"></a><span class="lineno">   24</span>&#160;    <span class="keyword">static</span> <span class="keyword">const</span> <span class="keywordtype">char</span>* LOG_PROCESS_SUSPENDED;</div>
-<div class="line"><a name="l00025"></a><span class="lineno">   25</span>&#160;    <span class="keyword">static</span> <span class="keyword">const</span> <span class="keywordtype">char</span>* LOG_PROCESS_RESUMED;</div>
-<div class="line"><a name="l00026"></a><span class="lineno">   26</span>&#160;    <span class="keyword">static</span> <span class="keyword">const</span> <span class="keywordtype">char</span>* LOG_PROCESS_STOPPED;</div>
-<div class="line"><a name="l00027"></a><span class="lineno">   27</span>&#160;    <span class="keyword">static</span> <span class="keyword">const</span> <span class="keywordtype">char</span>* LOG_PROCESS_RESTARTED;</div>
-<div class="line"><a name="l00028"></a><span class="lineno">   28</span>&#160;    <span class="keyword">static</span> <span class="keyword">const</span> <span class="keywordtype">char</span>* LOG_DEBUGGER_ATTACHED;</div>
-<div class="line"><a name="l00029"></a><span class="lineno">   29</span>&#160;    <span class="keyword">static</span> <span class="keyword">const</span> <span class="keywordtype">char</span>* LOG_PROCESS_OPENNED;</div>
-<div class="line"><a name="l00030"></a><span class="lineno">   30</span>&#160;<span class="comment">//  static const char* LOG_PROCESS_RESTARTED;</span></div>
-<div class="line"><a name="l00031"></a><span class="lineno">   31</span>&#160;    <a class="code" href="class_process_manager.html">ProcessManager</a> * pProgressManager;</div>
-<div class="line"><a name="l00032"></a><span class="lineno">   32</span>&#160;<span class="keyword">public</span>:</div>
-<div class="line"><a name="l00033"></a><span class="lineno">   33</span>&#160;    <a class="code" href="class_logger.html">Logger</a>(LPWSTR, <a class="code" href="class_process_manager.html">ProcessManager</a> *);</div>
-<div class="line"><a name="l00034"></a><span class="lineno">   34</span>&#160;    <span class="keyword">static</span> VOID warning();</div>
-<div class="line"><a name="l00035"></a><span class="lineno">   35</span>&#160;    <span class="keyword">static</span> VOID error(DWORD, <a class="code" href="class_process_manager.html">ProcessManager</a>*, DWORD);</div>
-<div class="line"><a name="l00036"></a><span class="lineno">   36</span>&#160;    <span class="keyword">static</span> VOID log(DWORD, <a class="code" href="class_process_manager.html">ProcessManager</a>*);</div>
-<div class="line"><a name="l00037"></a><span class="lineno">   37</span>&#160;    ~<a class="code" href="class_logger.html">Logger</a>();</div>
-<div class="line"><a name="l00038"></a><span class="lineno">   38</span>&#160;};</div>
-<div class="line"><a name="l00039"></a><span class="lineno">   39</span>&#160;</div>
+<div class="line"><a name="l00021"></a><span class="lineno">   21</span>&#160;    <span class="keyword">static</span> <span class="keyword">const</span> <span class="keywordtype">char</span>* WARN_DEBUGGER_ATTACH_DISABLED;</div>
+<div class="line"><a name="l00022"></a><span class="lineno">   22</span>&#160;    <span class="keyword">static</span> <span class="keyword">const</span> <span class="keywordtype">char</span>* WARN_PROCESS_EXIT;</div>
+<div class="line"><a name="l00023"></a><span class="lineno">   23</span>&#160;</div>
+<div class="line"><a name="l00024"></a><span class="lineno">   24</span>&#160;    <span class="keyword">static</span> <span class="keyword">const</span> <span class="keywordtype">char</span>* LOG_PROCESS_STARTED;</div>
+<div class="line"><a name="l00025"></a><span class="lineno">   25</span>&#160;    <span class="keyword">static</span> <span class="keyword">const</span> <span class="keywordtype">char</span>* LOG_PROCESS_SUSPENDED;</div>
+<div class="line"><a name="l00026"></a><span class="lineno">   26</span>&#160;    <span class="keyword">static</span> <span class="keyword">const</span> <span class="keywordtype">char</span>* LOG_PROCESS_RESUMED;</div>
+<div class="line"><a name="l00027"></a><span class="lineno">   27</span>&#160;    <span class="keyword">static</span> <span class="keyword">const</span> <span class="keywordtype">char</span>* LOG_PROCESS_STOPPED;</div>
+<div class="line"><a name="l00028"></a><span class="lineno">   28</span>&#160;    <span class="keyword">static</span> <span class="keyword">const</span> <span class="keywordtype">char</span>* LOG_PROCESS_RESTARTED;</div>
+<div class="line"><a name="l00029"></a><span class="lineno">   29</span>&#160;    <span class="keyword">static</span> <span class="keyword">const</span> <span class="keywordtype">char</span>* LOG_DEBUGGER_ATTACHED;</div>
+<div class="line"><a name="l00030"></a><span class="lineno">   30</span>&#160;    <span class="keyword">static</span> <span class="keyword">const</span> <span class="keywordtype">char</span>* LOG_PROCESS_OPENNED;</div>
+<div class="line"><a name="l00031"></a><span class="lineno">   31</span>&#160;<span class="keyword">public</span>:</div>
+<div class="line"><a name="l00032"></a><span class="lineno">   32</span>&#160;</div>
+<div class="line"><a name="l00042"></a><span class="lineno">   42</span>&#160;    <span class="keyword">static</span> VOID <a class="code" href="class_logger.html#afe180eaa48c2d6092da54ef80a9a54c5">warning</a>(DWORD, <a class="code" href="class_process_manager.html">ProcessManager</a>*, DWORD);</div>
+<div class="line"><a name="l00051"></a><span class="lineno">   51</span>&#160;    <span class="keyword">static</span> VOID <a class="code" href="class_logger.html#a4a18f512e2d977a9bcb98af5d56db1d1">error</a>(DWORD, <a class="code" href="class_process_manager.html">ProcessManager</a>*, DWORD);</div>
+<div class="line"><a name="l00052"></a><span class="lineno">   52</span>&#160;</div>
+<div class="line"><a name="l00060"></a><span class="lineno">   60</span>&#160;    <span class="keyword">static</span> VOID <a class="code" href="class_logger.html#ae246b48011da71bcd9f734a367e7646e">log</a>(DWORD, <a class="code" href="class_process_manager.html">ProcessManager</a>*);</div>
+<div class="line"><a name="l00061"></a><span class="lineno">   61</span>&#160;    ~<a class="code" href="class_logger.html">Logger</a>();</div>
+<div class="line"><a name="l00062"></a><span class="lineno">   62</span>&#160;};</div>
+<div class="line"><a name="l00063"></a><span class="lineno">   63</span>&#160;</div>
 <div class="ttc" id="class_logger_html"><div class="ttname"><a href="class_logger.html">Logger</a></div><div class="ttdef"><b>Definition:</b> Logger.h:11</div></div>
-<div class="ttc" id="class_process_manager_html"><div class="ttname"><a href="class_process_manager.html">ProcessManager</a></div><div class="ttdef"><b>Definition:</b> ProcessManager.h:27</div></div>
+<div class="ttc" id="class_process_manager_html"><div class="ttname"><a href="class_process_manager.html">ProcessManager</a></div><div class="ttdef"><b>Definition:</b> ProcessManager.h:29</div></div>
+<div class="ttc" id="class_logger_html_a4a18f512e2d977a9bcb98af5d56db1d1"><div class="ttname"><a href="class_logger.html#a4a18f512e2d977a9bcb98af5d56db1d1">Logger::error</a></div><div class="ttdeci">static VOID error(DWORD, ProcessManager *, DWORD)</div><div class="ttdef"><b>Definition:</b> Logger.cpp:85</div></div>
+<div class="ttc" id="class_logger_html_afe180eaa48c2d6092da54ef80a9a54c5"><div class="ttname"><a href="class_logger.html#afe180eaa48c2d6092da54ef80a9a54c5">Logger::warning</a></div><div class="ttdeci">static VOID warning(DWORD, ProcessManager *, DWORD)</div><div class="ttdef"><b>Definition:</b> Logger.cpp:61</div></div>
+<div class="ttc" id="class_logger_html_ae246b48011da71bcd9f734a367e7646e"><div class="ttname"><a href="class_logger.html#ae246b48011da71bcd9f734a367e7646e">Logger::log</a></div><div class="ttdeci">static VOID log(DWORD, ProcessManager *)</div><div class="ttdef"><b>Definition:</b> Logger.cpp:23</div></div>
 </div><!-- fragment --></div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Документація до Kodisoft test task створена Понеділок, 8 грудня 2014 19:11:22 системою &#160;<a href="http://www.doxygen.org/index.html">
+Документація до Kodisoft test task створена Вівторок, 9 грудня 2014 08:15:56 системою &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.8
 </small></address>

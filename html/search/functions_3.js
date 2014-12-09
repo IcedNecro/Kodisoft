@@ -1,9 +1,5 @@
 var searchData=
 [
-  ['setonprocesspauselistener',['setOnProcessPauseListener',['../class_process_manager.html#a0c0a42010c6e7949fc6cbebf853cbceb',1,'ProcessManager']]],
-  ['setonprocessresumelistener',['setOnProcessResumeListener',['../class_process_manager.html#a719434f2fe5c003f355b712dcddad850',1,'ProcessManager']]],
-  ['setonprocessstartlistener',['setOnProcessStartListener',['../class_process_manager.html#a97612a29cefa1f517635e096c1e91691',1,'ProcessManager']]],
-  ['setonprocessstoplistener',['setOnProcessStopListener',['../class_process_manager.html#a14bf654b6b333cf41b632c49d9a8efef',1,'ProcessManager']]],
-  ['startprocess',['startProcess',['../class_process_manager.html#a2b7cdddccd6e70b341075f2f69422948',1,'ProcessManager']]],
-  ['stopprocess',['stopProcess',['../class_process_manager.html#a98a33242eded5ec7098c58ca5382d0a8',1,'ProcessManager']]]
+  ['pauseprocess',['pauseProcess',['../class_process_manager.html#a271267c549451c89be3a85948f6220d2',1,'ProcessManager']]],
+  ['processmanager',['ProcessManager',['../class_process_manager.html#aeb235e3509127e76fbc1f9c525603120',1,'ProcessManager::ProcessManager(LPWSTR, LPWSTR)'],['../class_process_manager.html#a37ddbc730a38922c9b7a0dafb0b7ab55',1,'ProcessManager::ProcessManager(DWORD)'],['../class_process_manager.html#a41b83a8ef0a801ca3aee9a3d82568ac1',1,'ProcessManager::ProcessManager()']]]
 ];

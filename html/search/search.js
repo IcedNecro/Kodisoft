@@ -7,9 +7,9 @@
 
 var indexSectionsWithContent =
 {
-  0: "_glprs",
+  0: "_eglprsw~",
   1: "_lp",
-  2: "gprs"
+  2: "eglprsw~"
 };
 
 var indexSectionNames =

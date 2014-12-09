@@ -1,5 +1,7 @@
 var searchData=
 [
-  ['pauseprocess',['pauseProcess',['../class_process_manager.html#a271267c549451c89be3a85948f6220d2',1,'ProcessManager']]],
-  ['processmanager',['ProcessManager',['../class_process_manager.html#aeb235e3509127e76fbc1f9c525603120',1,'ProcessManager::ProcessManager(LPWSTR, LPWSTR)'],['../class_process_manager.html#a37ddbc730a38922c9b7a0dafb0b7ab55',1,'ProcessManager::ProcessManager(DWORD)'],['../class_process_manager.html#a41b83a8ef0a801ca3aee9a3d82568ac1',1,'ProcessManager::ProcessManager()']]]
+  ['getprocesshandle',['getProcessHandle',['../class_process_manager.html#a9ef3daadbc5c9fbadf2b27959fa6ad48',1,'ProcessManager']]],
+  ['getprocessinfo',['getProcessInfo',['../class_process_manager.html#a44dcace533e34ae32b1b87f869027b69',1,'ProcessManager']]],
+  ['getprocesslist',['GetProcessList',['../class_process_manager.html#a3d9add158edf3b5112981bf231394c41',1,'ProcessManager']]],
+  ['getprocesspath',['getProcessPath',['../class_process_manager.html#a8c5aa33cb2a82c784ff2fcef6d44b9c0',1,'ProcessManager']]]
 ];

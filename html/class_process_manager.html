@@ -102,9 +102,6 @@ var searchBox = new SearchBox("searchBox", "search",false,'Пошук');
 <tr class="separator:a41b83a8ef0a801ca3aee9a3d82568ac1"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a8c5aa33cb2a82c784ff2fcef6d44b9c0"><td class="memItemLeft" align="right" valign="top">LPWSTR&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_process_manager.html#a8c5aa33cb2a82c784ff2fcef6d44b9c0">getProcessPath</a> ()</td></tr>
 <tr class="separator:a8c5aa33cb2a82c784ff2fcef6d44b9c0"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a0ad5c900976a56f7b2ebc0c12f52cbaf"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a0ad5c900976a56f7b2ebc0c12f52cbaf"></a>
-DWORD&#160;</td><td class="memItemRight" valign="bottom"><b>getRunningThreadInfo</b> ()</td></tr>
-<tr class="separator:a0ad5c900976a56f7b2ebc0c12f52cbaf"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a271267c549451c89be3a85948f6220d2"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_process_manager.html#a271267c549451c89be3a85948f6220d2">pauseProcess</a> ()</td></tr>
 <tr class="separator:a271267c549451c89be3a85948f6220d2"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a397a4518985e698014f1177c49456627"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_process_manager.html#a397a4518985e698014f1177c49456627">resumeProcess</a> ()</td></tr>
@@ -115,9 +112,6 @@ DWORD&#160;</td><td class="memItemRight" valign="bottom"><b>getRunningThreadInfo
 <tr class="separator:a2c3cb2ec54bbec48d5ec6cea66b3eef6"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a44dcace533e34ae32b1b87f869027b69"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_process_manager.html#a44dcace533e34ae32b1b87f869027b69">getProcessInfo</a> ()</td></tr>
 <tr class="separator:a44dcace533e34ae32b1b87f869027b69"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a892aec6660bcb53b59bc643301339244"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a892aec6660bcb53b59bc643301339244"></a>
-bool&#160;</td><td class="memItemRight" valign="bottom"><b>reopenProcess</b> ()</td></tr>
-<tr class="separator:a892aec6660bcb53b59bc643301339244"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a9ef3daadbc5c9fbadf2b27959fa6ad48"><td class="memItemLeft" align="right" valign="top">HANDLE &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_process_manager.html#a9ef3daadbc5c9fbadf2b27959fa6ad48">getProcessHandle</a> ()</td></tr>
 <tr class="separator:a9ef3daadbc5c9fbadf2b27959fa6ad48"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a2b7cdddccd6e70b341075f2f69422948"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_process_manager.html#a2b7cdddccd6e70b341075f2f69422948">startProcess</a> ()</td></tr>
@@ -130,6 +124,8 @@ bool&#160;</td><td class="memItemRight" valign="bottom"><b>reopenProcess</b> ()<
 <tr class="separator:a0c0a42010c6e7949fc6cbebf853cbceb"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a97612a29cefa1f517635e096c1e91691"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_process_manager.html#a97612a29cefa1f517635e096c1e91691">setOnProcessStartListener</a> (void(*func)(<a class="el" href="class_process_manager.html">ProcessManager</a> *))</td></tr>
 <tr class="separator:a97612a29cefa1f517635e096c1e91691"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aed3cd2ca11d92395228b758d39030b5f"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_process_manager.html#aed3cd2ca11d92395228b758d39030b5f">~ProcessManager</a> ()</td></tr>
+<tr class="separator:aed3cd2ca11d92395228b758d39030b5f"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-static-methods"></a>
 Загальнодоступні статичні елементи</h2></td></tr>
@@ -149,7 +145,7 @@ class&#160;</td><td class="memItemRight" valign="bottom"><b>Logger</b></td></tr>
 <li>
 <b>Make class to be able to handle already opened process</b> Specify id of currently running process. As I noticed earlier, class has some permissions of access.  </li>
 </ul>
-<p>Handling process crash is made with Debug Api (WinApi). Some processes don't supports debugging (system processes, or simple processes such as notepad.exe or calc.exe). So in this cases for restarting process I used GetExitCodeProcess function to recieve exit code :( </p><dl class="section author"><dt>Автор</dt><dd>- Roman Statkevich, Kyiv Polytechic Insitute Contact me by email <a href="#" onclick="location.href='mai'+'lto:'+'rom'+'an'+'sta'+'tk'+'evi'+'ch'+'@gm'+'ai'+'l.c'+'om'; return false;">roman<span style="display: none;">.nosp@m.</span>stat<span style="display: none;">.nosp@m.</span>kevic<span style="display: none;">.nosp@m.</span>h@gm<span style="display: none;">.nosp@m.</span>ail.c<span style="display: none;">.nosp@m.</span>om</a> </dd></dl>
+<p>Handling process crash is made with Debug Api (WinApi). Some processes don't supports debugging (system processes, or simple processes such as notepad.exe or calc.exe. Look like I simply hasn't 64bit debugger). So in this cases for restarting process I used GetExitCodeProcess function to recieve exit code :( </p><dl class="section author"><dt>Автор</dt><dd>- Roman Statkevich, Kyiv Polytechic Insitute Contact me by email <a href="#" onclick="location.href='mai'+'lto:'+'rom'+'an'+'sta'+'tk'+'evi'+'ch'+'@gm'+'ai'+'l.c'+'om'; return false;">roman<span style="display: none;">.nosp@m.</span>stat<span style="display: none;">.nosp@m.</span>kevic<span style="display: none;">.nosp@m.</span>h@gm<span style="display: none;">.nosp@m.</span>ail.c<span style="display: none;">.nosp@m.</span>om</a> </dd></dl>
 </div><h2 class="groupheader">Конструктор(и)</h2>
 <a class="anchor" id="aeb235e3509127e76fbc1f9c525603120"></a>
 <div class="memitem">
@@ -213,6 +209,22 @@ class&#160;</td><td class="memItemRight" valign="bottom"><b>Logger</b></td></tr>
       </table>
 </div><div class="memdoc">
 <p>Default constructor </p>
+
+</div>
+</div>
+<a class="anchor" id="aed3cd2ca11d92395228b758d39030b5f"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">ProcessManager::~ProcessManager </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Destructor do nothing except waiting for debug loop terminating </p>
 
 </div>
 </div>
@@ -454,13 +466,13 @@ class&#160;</td><td class="memItemRight" valign="bottom"><b>Logger</b></td></tr>
 </div>
 </div>
 <hr/>Документація цих класів була створена з файлів:<ul>
-<li>D:/MyDocs/GitHub/Kodisoft/Kodisoft Test/Kodisoft Test/<a class="el" href="_process_manager_8h_source.html">ProcessManager.h</a></li>
-<li>D:/MyDocs/GitHub/Kodisoft/Kodisoft Test/Kodisoft Test/ProcessManager.cpp</li>
+<li>D:/MyDocs/GitHub/Kodisoft/KodisoftTest/<a class="el" href="_process_manager_8h_source.html">ProcessManager.h</a></li>
+<li>D:/MyDocs/GitHub/Kodisoft/KodisoftTest/ProcessManager.cpp</li>
 </ul>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Документація до Kodisoft test task створена Понеділок, 8 грудня 2014 19:11:22 системою &#160;<a href="http://www.doxygen.org/index.html">
+Документація до Kodisoft test task створена Вівторок, 9 грудня 2014 08:15:56 системою &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.8
 </small></address>
